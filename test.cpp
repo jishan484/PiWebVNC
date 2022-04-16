@@ -1,3 +1,5 @@
+// this is for testing. soo ths will be the main app
+
 #include <iostream>
 #include <signal.h>
 #include <X11/Xlib.h>
