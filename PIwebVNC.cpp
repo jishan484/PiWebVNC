@@ -80,7 +80,7 @@ void frameLoop(Websocket ws)
             else
             {
                 int partCounts = 0;
-                XserverRegion xregion = XFixesCreateRegion(display, NULL, 0);
+                XserverRegion xregion = XFixesCreateRegion(display, 0, 0);
                 XDamageSubtract(display, damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(display, xregion, &partCounts);
                 XFixesDestroyRegion(display, xregion);
