@@ -3,6 +3,18 @@
 # PiWebVNC
 A simple, highly efficient web baseed VNC app for Raspberry pi (all models).
 
+max CPU usage PI4 : 2.7% (10 FPS)
+max RAM usage PI4 2GB model : 0.7%
+
+* 30FPS at CPU load of 10%, RAM 15MB only.
+* It only sends Damaged area of the screen. Works just like VNC.
+* mouse controll (click, double click, right click , scroll , drag , hover)
+* keyboard controll
+* Support multiple client simultaneously. (max client configurable)
+* Auto start using systemd (script in section 2.2)
+* No external dependency. (no need to install VNC / NoVNC server)
+* password authentication [not implemented : TODO]
+
 #requirements
 1. Linux os (Raspbian, DietPI, Ubuntu with desktop etc)
 2. A desktop environment (LXDE, MATE, XFCE,LXQT etc).
