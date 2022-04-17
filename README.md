@@ -13,7 +13,7 @@ max RAM usage PI4 2GB model : 0.7%
 * No external dependency. (no need to install VNC / NoVNC server)
 * password authentication [not implemented : TODO]
 
-![image](https://user-images.githubusercontent.com/49402826/163715102-ef6cbd8f-5394-42fd-a95c-b68635ee5b45.png)
+![image](https://user-images.githubusercontent.com/49402826/163715416-80391896-920b-4af9-b2ff-ad9e33df4939.png)
 
 
 #requirements
