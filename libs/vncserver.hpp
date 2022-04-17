@@ -58,7 +58,7 @@ void VNCServer::send_first_frame(int sd)
 }
 void VNCServer::start_service(Websocket &ws)
 {
-    int bufferSize = (this->screenInfo.height * this->screenInfo.width * 4) + (2 * this->screenInfo.width);
+    int bufferSize = (this->screenInfo.height * xdisplay.getBitPerLine()) + (2 * this->screenInfo.width);
     char buffer[bufferSize] = {0};
     int sleepDelay = 1000000 / FPS;
     XImage *image;

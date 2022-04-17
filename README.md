@@ -1,3 +1,5 @@
+	***NEXT UPDATE : add html page with http server***
+
 # PiWebVNC
 A simple, highly efficient web baseed VNC app for Raspberry pi (all models).
 

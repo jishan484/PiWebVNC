@@ -45,9 +45,11 @@ public:
     std::string getDisplayConfig();
     ScreenInfo getScreenInfo();
     std::string getCursorName();
+    int getBitPerLine();
 
 private:
     Display *display = 0;
+    int bitPerLine = 0;
 };
 
 XDisplay::XDisplay()
@@ -100,6 +102,11 @@ Display * XDisplay::getDisplay()
     return display;
 }
 
+int XDisplay::getBitPerLine()
+{
+    return bitPerLine;
+}
+
 std::string XDisplay::getDisplayConfig()
 {
     ScreenInfo screenInfo = getScreenInfo();
@@ -115,6 +122,7 @@ std::string XDisplay::getDisplayConfig()
                          ",'depth':" + std::to_string(img->depth) +
                          ",'fps':" + std::to_string(FPS) +
                          +" }";
+    this->bitPerLine = img->bytes_per_line;
     XDestroyImage(img);
     return config;
 }
