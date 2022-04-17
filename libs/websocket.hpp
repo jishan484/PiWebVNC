@@ -57,6 +57,7 @@ private:
     char *decode(char *data);
     void (*callBack)(int sid) = NULL;
     void (*callBackMsg)(void *data, int sid) = NULL;
+    bool isThreadBusy = false;
 };
 
 int Websocket::client_socket[30] = {0};
@@ -215,7 +216,9 @@ void Websocket::handshake(char *data, int sd, int sid)
             response += "Sec-WebSocket-Accept: " + result + "\r\n\r\n";
             char char_array[response.length() + 1];
             strcpy(char_array, response.c_str());
+            this->isThreadBusy = true;
             send(sd, char_array, response.length(), 0);
+            this->isThreadBusy = false;
             ready = 1;
             flag = true;
             break;
@@ -281,6 +284,7 @@ void Websocket::sendRaw(int startByte, char *data, long imgSize, int sid)
         header[9] = (imgSize & 255);
         moded = 10;
     }
+    while(this->isThreadBusy);
     if (sid != -1)
     {
         send(client_socket[sid], header, moded, 0); // for websocket header
@@ -328,6 +332,7 @@ void Websocket::sendRaw(int startByte, char *data1, char *data2, long data1Size,
         header[9] = (imgSize & 255);
         moded = 10;
     }
+    while(this->isThreadBusy);
     if (sid != -1)
     {
         send(client_socket[sid], header, moded, 0);    // for websocket header
