@@ -23,6 +23,7 @@ class VNCServer
     private:
         Display * display;
         Damage damage;
+        XserverRegion xregion;
         ScreenInfo screenInfo;
         char config[500] = {0}; // 500byte not too much
         bool isRunning = true;
@@ -87,10 +88,10 @@ void VNCServer::start_service(Websocket &ws)
             else
             {
                 int partCounts = 0;
-                XserverRegion xregion = XFixesCreateRegion(this->display, 0, 0);
+                this->xregion = XFixesCreateRegion(this->display, 0, 0);
                 XDamageSubtract(this->display, this->damage, None, xregion);
-                XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
-                XFixesDestroyRegion(this->display, xregion);
+                XRectangle *rect = XFixesFetchRegion(this->display, this->xregion, &partCounts);
+                XFixesDestroyRegion(this->display, this->xregion);
                 for (int i = 0; i < partCounts; i++)
                 {
                     image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
