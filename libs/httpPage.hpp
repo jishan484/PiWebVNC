@@ -9631,7 +9631,7 @@ void parseHttpPage()
     let doubleKeyPressed = 0;
     let getPixelRGB = function() { return { r: 0, g: 0, b: 0 }; }
     let totalDataSize = 0;
-    connect();
+    setTimeout(function(){ connect(); },2000);
 
     document.addEventListener('paste', handlePaste);
     const sleep = (milis) => new Promise((resolve => setTimeout(() => resolve(), milis)));
