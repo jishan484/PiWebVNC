@@ -1,5 +1,3 @@
-	***NEXT UPDATE : add html page with http server***
-
 # PiWebVNC
 A simple, highly efficient web baseed VNC app for Raspberry pi (all models).
 
@@ -14,6 +12,9 @@ max RAM usage PI4 2GB model : 0.7%
 * Auto start using systemd (script in section 2.2)
 * No external dependency. (no need to install VNC / NoVNC server)
 * password authentication [not implemented : TODO]
+
+![image](https://user-images.githubusercontent.com/49402826/163715102-ef6cbd8f-5394-42fd-a95c-b68635ee5b45.png)
+
 
 #requirements
 1. Linux os (Raspbian, DietPI, Ubuntu with desktop etc)
