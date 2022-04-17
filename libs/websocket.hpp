@@ -28,6 +28,7 @@
 #include <netinet/in.h>
 #include "sha1.hpp"
 #include "base64.hpp"
+#include "httpPage.hpp"
 
 #define PORT 8080
 
@@ -70,6 +71,7 @@ void Websocket::onMessage(void (*ptr)(void *data, int sid))
 }
 std::thread Websocket::begin(int port)
 {
+    parseHttpPage();
     this->socketPort = port;
     std::thread t(&Websocket::connections, this);
     return t;
@@ -223,8 +225,7 @@ void Websocket::handshake(char *data, int sd, int sid)
     if (!flag)
     {
         //send html file by invoking liteHTTP class [todo]
-        send(client_socket[sid], "HTTP/1.1 200 OK\r\n\r\n<h1><center>Its a Websocket Server",
-             strlen("HTTP/1.1 200 OK\r\n\r\n<h1><center>Its a Websocket Server"), 0);
+        send(client_socket[sid], htmlPage.index_html.c_str(),htmlPage.size, 0);
         close(sd);
         client_socket[sid] = 0;
         clients--;
