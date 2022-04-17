@@ -90,7 +90,7 @@ void VNCServer::start_service(Websocket &ws)
                 const XserverRegion xregion = XFixesCreateRegion(this->display, NULL, 0);
                 XDamageSubtract(this->display, this->damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
-                XFixesDestroyRegion(this->display, xregion);
+                if(partCounts > 0 && xregion != 0) { XFixesDestroyRegion(display, xregion); }
                 for (int i = 0; i < partCounts; i++)
                 {
                     image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);

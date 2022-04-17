@@ -83,7 +83,8 @@ void frameLoop(Websocket ws)
                 XserverRegion xregion = XFixesCreateRegion(display, 0, 0);
                 XDamageSubtract(display, damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(display, xregion, &partCounts);
-                XFixesDestroyRegion(display, xregion);
+                // destroy region after fetching without error
+                if(partCounts > 0 && xregion != 0) { XFixesDestroyRegion(display, xregion); }
                 for (int i = 0; i < partCounts; i++)
                 {
                     img = XGetImage(display, root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
