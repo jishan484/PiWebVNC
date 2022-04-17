@@ -12,7 +12,7 @@ struct HttpHTMLPage
 
 void parseHttpPage()
 {
-    htmlPage.index_html = std::string("HTTP/1.1 200 OK\r\n\r\n") + R"html(
+    htmlPage.index_html = std::string("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n") + R"html(
 <!DOCTYPE html>
 <html lang="en">
 <head>

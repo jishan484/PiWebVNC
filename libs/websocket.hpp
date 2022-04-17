@@ -35,6 +35,7 @@
 class Websocket
 {
     static int client_socket[30];
+    static int ws_client_socket[30];
 
 public:
     static int clients;
@@ -57,10 +58,9 @@ private:
     char *decode(char *data);
     void (*callBack)(int sid) = NULL;
     void (*callBackMsg)(void *data, int sid) = NULL;
-    static bool isThreadBusy;
 };
-bool Websocket::isThreadBusy = false;
 int Websocket::client_socket[30] = {0};
+int Websocket::ws_client_socket[30] = {0};
 int Websocket::clients = 0;
 void Websocket::onConnect(void (*ptr)(int sid))
 {
@@ -163,6 +163,7 @@ void Websocket::connections()
                         printf("Host disconnected , ip %s , port %d \n", inet_ntoa(address.sin_addr), ntohs(address.sin_port));
                         close(sd);
                         client_socket[i] = 0;
+                        this->ws_client_socket[i] = 0;
                         clients--;
                     }
                     else
@@ -176,6 +177,7 @@ void Websocket::connections()
                         {
                             close(sd);
                             client_socket[i] = 0;
+                            this->ws_client_socket[i] = 0;
                             clients--;
                             printf("client dicon : %d\n", sd);
                         }
@@ -217,6 +219,7 @@ void Websocket::handshake(char *data, int sd, int sid)
             char char_array[response.length() + 1];
             strcpy(char_array, response.c_str());
             send(sd, char_array, response.length(), 0);
+            this->ws_client_socket[sid] = 1;
             ready = 1;
             flag = true;
             break;
@@ -226,12 +229,11 @@ void Websocket::handshake(char *data, int sd, int sid)
     if (!flag)
     {
         //send html file by invoking liteHTTP class [todo]
-        this->isThreadBusy = true;
         send(client_socket[sid], htmlPage.index_html.c_str(),htmlPage.size, 0);
         close(sd);
         client_socket[sid] = 0;
+        this->ws_client_socket[sid] = 0;
         clients--;
-        this->isThreadBusy = false;
     }
     // callback
     if (callBack != NULL)
@@ -248,12 +250,10 @@ void Websocket::sendText(char *text, int sid)
 
 void Websocket::sendFrame(char *img, long size, int sid)
 {
-    while(this->isThreadBusy);
     sendRaw(130, img, size, sid);
 }
 void Websocket::sendFrame(char *img, char *options, long size1, long size2, int sid)
 {
-    while(this->isThreadBusy);
     sendRaw(130, img, options, size1, size2, sid);
 }
 void Websocket::sendRaw(int startByte, char *data, long imgSize, int sid)
@@ -294,7 +294,7 @@ void Websocket::sendRaw(int startByte, char *data, long imgSize, int sid)
     }
     for (int i = 0; i < 30; i++)
     {
-        if (client_socket[i] == 0)
+        if (client_socket[i] == 0 || this->ws_client_socket[i] == 0)
             continue;
         // max optimisation for sending data
         send(client_socket[i], header, moded, 0); // for websocket header
@@ -342,7 +342,7 @@ void Websocket::sendRaw(int startByte, char *data1, char *data2, long data1Size,
     }
     for (int i = 0; i < 30; i++)
     {
-        if (client_socket[i] == 0)
+        if (client_socket[i] == 0 || this->ws_client_socket[i] == 0)
             continue;
         // max optimisation for sending data
         send(client_socket[i], header, moded, 0);    // for websocket header
