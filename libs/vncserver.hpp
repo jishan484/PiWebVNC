@@ -88,6 +88,7 @@ void VNCServer::start_service(Websocket &ws)
             {
                 int partCounts = 0;
                 const XserverRegion xregion = XFixesCreateRegion(this->display, NULL, 0);
+                if(xregion == None) continue;
                 XDamageSubtract(this->display, this->damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
                 if(partCounts > 0 && xregion != 0) { XFixesDestroyRegion(display, xregion); }
