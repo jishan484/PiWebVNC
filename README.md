@@ -4,8 +4,13 @@ A simple, highly efficient web baseed VNC app for Raspberry pi (all models).
 ## Installation process
 
 ```sh
+git clone https://github.com/jishan484/PiWebVNC.git
+cd PiWebVNC
 sudo apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-dev g++
 g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -o PiWebVNC
+
+# for test
+./PiWebVNC
 ```
 
 
