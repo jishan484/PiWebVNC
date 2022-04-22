@@ -1,9 +1,22 @@
 # PiWebVNC
 A simple, highly efficient web baseed VNC app for Raspberry pi (all models).
 
+## Installation process
+
+`sudo apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-dev g++`
+`g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -o PiWebVNC`
+or run
+`sudo sh compile.sh`
+
+## requirements
+1. Linux os (Raspbian, DietPI, Ubuntu with desktop etc)
+2. A desktop environment (LXDE, MATE, XFCE,LXQT etc).
+
+## Performance
 max CPU usage PI4 : 3.7% (10 FPS)
 max RAM usage PI4 2GB model : 0.7%
 
+## features
 * 30FPS at CPU load of 10%, RAM 15MB only.
 * It only sends Damaged area of the screen. Works just like VNC.
 * mouse controll (click, double click, right click , scroll , drag , hover)
@@ -15,12 +28,8 @@ max RAM usage PI4 2GB model : 0.7%
 
 ![image](https://user-images.githubusercontent.com/49402826/163715482-ae7e166f-7ac2-4baa-a946-9770576c0bf5.png)
 
-
-#requirements
-1. Linux os (Raspbian, DietPI, Ubuntu with desktop etc)
-2. A desktop environment (LXDE, MATE, XFCE,LXQT etc).
-
-a. To compile this in your PC run 'install.sh' (this will install some dependencies for compilation)
+## Pre-compiled binary [not available for now]
+a. It is always better to compile it in your PC. To compile this in your PC please check installation process (this will install some dependencies for compilation)
 b. or you can download pre-compiled app from links below
   1. link1 for ARMv6 - pi zero , pi zero w
   2. link2 for ARMv7 - pi 3 , pi 2w
