@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
     std::thread t2(frameLoop, &ws);
     ws.onMessage(onMessageCLBK);
     ws.onConnect(firstFrame);
-    std::cout << "\nopen http://localhost:" << SERVER_PORT << " in your browser" << std::endl;
-    std::cout << "OR" << std::endl;
-    std::cout << "open http://Ip-of-PI:" << SERVER_PORT << " from different PC\n" << std::endl;
+    std::cout << "\nOpen http://localhost:" << SERVER_PORT << " in your browser" << std::endl;
+    std::cout << "---OR---" << std::endl;
+    std::cout << "Open http://Ip-of-PI:" << SERVER_PORT << " from different PC\n" << std::endl;
     t1.join();
     t2.join();
     return 0;
