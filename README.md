@@ -2,8 +2,7 @@
 A simple, highly efficient web baseed VNC app for Raspberry pi (all models).
 
 ## Installation process
-
-run ```sudo sh compile.sh```<br> or
+To compile this app some adition package will be installed in your pi. You can use pre-compiled binary, please check [Downloads](#Downloads) section.
 #### setup
 ```sh
 git clone https://github.com/jishan484/PiWebVNC.git
@@ -13,7 +12,6 @@ sudo apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-d
 #### Compile and Run
 ```sh
 g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -o PiWebVNC
-
 # for test
 ./PiWebVNC
 ```
@@ -44,7 +42,8 @@ max RAM usage PI4 2GB model : 0.7%
 
 ![image](https://user-images.githubusercontent.com/49402826/163715482-ae7e166f-7ac2-4baa-a946-9770576c0bf5.png)
 
-## Pre-compiled binary [not available for now]
+## Downloads
+####    [not available for now]
 It is always better to compile it in your PC. To compile this in your PC please check installation process (this will install some dependencies for compilation)
 You can download pre-compiled app from links below
   1. link1 for ARMv6 - pi zero , pi zero w
