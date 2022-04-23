@@ -1,6 +1,6 @@
 # PiWebVNC
 A simple, highly efficient, web baseed VNC app for Raspberry pi (all models).
-##### No external dependency required. Just `compile -> run -> go`.
+###### No external dependency required. Just `compile -> run -> go`.
 ## Installation process
 To compile this app some adition package will be installed in your pi. You can also use pre-compiled binary, please check [Pre compiled Binaries](#pre-compiled-binaries) section.
 #### setup
@@ -20,9 +20,10 @@ open `http://localhost:8000` in browser<br>
 or<br>
 open `http://--ip-of-raspberry-pi--:8000` from another pc browser E.g. `http://192.168.0.15:8000`
 
-Use this auto-start method to run this app at startup
-##### Note : You can use different methods also.
+
 ### Auto-start
+Use this auto-start method to run this app at startup
+###### Note : You can use different methods also.
 ```shell
 sudo echo "[Unit]
 Description=Remote desktop service (VNC)
