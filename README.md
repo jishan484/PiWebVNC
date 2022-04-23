@@ -19,8 +19,8 @@ g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -o PiWebVNC
 ```
 
 open http://localhost:8000 in browser<br>
-<td><td>or<br>
-http://--ip-of-raspberry-pi--:8000 from another pc browser
+or<br>
+open http://--ip-of-raspberry-pi--:8000 from another pc browser
 
 
 
