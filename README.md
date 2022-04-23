@@ -3,26 +3,28 @@ A simple, highly efficient web baseed VNC app for Raspberry pi (all models).
 
 ## Installation process
 
-setup
+run ```sudo sh compile.sh```<br> or
+#### setup
 ```sh
 git clone https://github.com/jishan484/PiWebVNC.git
 cd PiWebVNC
 sudo apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-dev g++
 ```
-to compile and test run
+#### Compile and Run
 ```sh
 g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -o PiWebVNC
 
 # for test
 ./PiWebVNC
 ```
-open http://localhost:8000 in browser
-or http://--ip-of-raspberry-pi--:8000 from another pc browser
+
+open http://localhost:8000 in browser<br>
+<td><td>or<br>
+http://--ip-of-raspberry-pi--:8000 from another pc browser
 
 
-```sudo sh compile.sh```<br>
 
-## requirements
+## Requirements
 1. Linux os (Raspbian, DietPI, Ubuntu with desktop etc)
 2. A desktop environment (LXDE, MATE, XFCE,LXQT etc).
 
@@ -30,7 +32,7 @@ or http://--ip-of-raspberry-pi--:8000 from another pc browser
 max CPU usage PI4 : 3.7% (10 FPS)
 max RAM usage PI4 2GB model : 0.7%
 
-## features
+## Features
 * 30FPS at CPU load of 10%, RAM 15MB only.
 * It only sends Damaged area of the screen. Works just like VNC.
 * mouse controll (click, double click, right click , scroll , drag , hover)
@@ -50,4 +52,4 @@ You can download pre-compiled app from links below
   3. link3 for ARMv8 - pi 4
   4. link4 for x86 - any other pc with x86 cpu
 
-`please note that, this software does not provide any security features. Only use for low risk projects in your local network. A secure version is under development.`
+#### `please note that, this software does not provide any security features. Only use for low risk projects in your local network. A secure version is under development.`
