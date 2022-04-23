@@ -1,8 +1,8 @@
 # PiWebVNC
-A simple, highly efficient web baseed VNC app for Raspberry pi (all models).
-
+A simple, highly efficient, web baseed VNC app for Raspberry pi (all models).
+##### No external dependency required. Just `compile -> run -> go`.
 ## Installation process
-To compile this app some adition package will be installed in your pi. You can use pre-compiled binary, please check [Downloads](#Downloads) section.
+To compile this app some adition package will be installed in your pi. You can also use pre-compiled binary, please check [Pre compiled Binaries](#pre-compiled-binaries) section.
 #### setup
 ```sh
 git clone https://github.com/jishan484/PiWebVNC.git
@@ -16,11 +16,30 @@ g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -o PiWebVNC
 ./PiWebVNC
 ```
 
-open http://localhost:8000 in browser<br>
+open `http://localhost:8000` in browser<br>
 or<br>
-open http://--ip-of-raspberry-pi--:8000 from another pc browser
+open `http://--ip-of-raspberry-pi--:8000` from another pc browser E.g. `http://192.168.0.15:8000`
 
-
+Use this auto-start method to run this app at startup
+##### Note : You can use different methods also.
+### Auto-start
+```shell
+sudo echo "[Unit]
+Description=Remote desktop service (VNC)
+After=syslog.target network.target multi-user.target
+[Service]
+Type=simple
+ExecStart=/PiWebVNC
+Restart=always
+RestartSec=10
+[Install]
+WantedBy=multi-user.target" > /etc/systemd/system/PiWebVNC.service
+```
+```sh
+sudo systemctl enable PiWebVNC.service
+sudo systemctl daemon-reload
+sudo systemctl start PiWebVNC.service
+```
 
 ## Requirements
 1. Linux os (Raspbian, DietPI, Ubuntu with desktop etc)
@@ -42,9 +61,9 @@ max RAM usage PI4 2GB model : 0.7%
 
 ![image](https://user-images.githubusercontent.com/49402826/163715482-ae7e166f-7ac2-4baa-a946-9770576c0bf5.png)
 
-## Downloads
+## Pre compiled Binaries
 ####    [not available for now]
-It is always better to compile it in your PC. To compile this in your PC please check installation process (this will install some dependencies for compilation)
+It is always better to compile it in your PC. To compile this in your PC please check [Installation process](#installation-process) (this will install some dependencies in your Pi)
 You can download pre-compiled app from links below
   1. link1 for ARMv6 - pi zero , pi zero w
   2. link2 for ARMv7 - pi 3 , pi 2w
