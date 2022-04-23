@@ -47,8 +47,8 @@ sudo systemctl start PiWebVNC.service
 2. A desktop environment (LXDE, MATE, XFCE,LXQT etc).
 
 ## Performance
-max CPU usage PI4 : 3.7% (10 FPS)
-max RAM usage PI4 2GB model : 0.7%
+max CPU usage PI4 : `3.7%` (10 FPS)<br>
+max RAM usage PI4 2GB model : `0.7%`
 
 ## Features
 * 30FPS at CPU load of 10%, RAM 15MB only.
@@ -63,12 +63,12 @@ max RAM usage PI4 2GB model : 0.7%
 ![image](https://user-images.githubusercontent.com/49402826/163715482-ae7e166f-7ac2-4baa-a946-9770576c0bf5.png)
 
 ## Pre compiled Binaries
-####    [not available for now]
+####    [only available for x86]
 It is always better to compile it in your PC. To compile this in your PC please check [Installation process](#installation-process) (this will install some dependencies in your Pi)
 You can download pre-compiled app from links below
   1. link1 for ARMv6 - pi zero , pi zero w
   2. link2 for ARMv7 - pi 3 , pi 2w
   3. link3 for ARMv8 - pi 4
-  4. link4 for x86 - any other pc with x86 cpu
+  4. link4 for x86 - [PiWebVNC_x86_v1](https://github.com/jishan484/PiWebVNC/releases/download/x86_cpu/PiWebVNC)
 
 #### `please note that, this software does not provide any security features. Only use for low risk projects in your local network. A secure version is under development.`
