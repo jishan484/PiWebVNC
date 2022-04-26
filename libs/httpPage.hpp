@@ -9742,7 +9742,7 @@ void parseHttpPage()
                     var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
                     data = "M" + x + " " + y + " ";
                     ws.send(data);
-                }, 350);
+                }, 200);
             }
             canvas.onwheel = function(e){
                 e.preventDefault();
