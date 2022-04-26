@@ -1,8 +1,8 @@
 # PiWebVNC
-A simple, highly efficient, web baseed VNC app for Raspberry pi (all models).
+A simple, highly efficient, web based VNC app for Raspberry pi (all models).
 ###### No external dependency required. Just `compile -> run -> go`.
 ## Installation process
-To compile this app some aditional packages will be installed in your pi. You can also use pre-compiled binary, please check [Pre compiled Binaries](#pre-compiled-binaries) section.
+To compile this app, some aditional packages will be installed in your pi. You can also use pre-compiled binary, please check [Pre compiled Binaries](#pre-compiled-binaries) section.
 #### setup
 ```sh
 git clone https://github.com/jishan484/PiWebVNC.git
@@ -21,7 +21,7 @@ or<br>
 open `http://--ip-of-raspberry-pi--:8000` from another pc browser E.g. `http://192.168.0.15:8000`
 
 
-### Auto-start
+### Auto start
 Use this auto-start method to run this app at startup
 ###### Note : You can use different methods also.
 ```shell
@@ -43,7 +43,7 @@ sudo systemctl start PiWebVNC.service
 ```
 
 ## Requirements
-1. Linux os (Raspbian, DietPI, Ubuntu with desktop etc)
+1. Linux os (Raspbian, TwisterOS, DietPI, Ubuntu with desktop etc)
 2. A desktop environment (LXDE, MATE, XFCE,LXQT etc).
 
 ## Performance
@@ -51,14 +51,16 @@ max CPU usage PI4 : `3.7%` (10 FPS)<br>
 max RAM usage PI4 2GB model : `0.7%`
 
 ## Features
-* 30FPS at CPU load of 10%, RAM 15MB only.
+* 30FPS at max CPU load of 10%, RAM 15MB only. CPU load will be 0% when screen is not changing. 
 * It only sends Damaged area of the screen. Works just like VNC.
 * mouse controll (click, double click, right click , scroll , drag , hover)
 * keyboard controll
 * Support multiple client simultaneously. (max client configurable)
-* Auto start using systemd (script in section 2.2)
+* Auto start using systemd (script in section [Auto start](#auto-start))
 * No external dependency. (no need to install VNC / NoVNC server)
-* password authentication [not implemented : TODO]
+* Clipboard support. [text only]
+* Easily transfer Files / Folders from web client. [not implemented : TODO]
+* password authentication. [not implemented : TODO]
 
 ![image](https://user-images.githubusercontent.com/49402826/163715482-ae7e166f-7ac2-4baa-a946-9770576c0bf5.png)
 
