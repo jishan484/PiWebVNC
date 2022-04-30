@@ -9682,8 +9682,8 @@ void parseHttpPage()
         let dataSize = Math.round((transferedDataSize / 1024) * 100) / 100;
         totalDataSize += (dataSize / 1024);
         lastFrameSize.innerText = relative_width + "x" + relative_height;
-        lastTransferedData.innerHTML = "Last transfered " + dataSize + "KB";
-        totalDataTransfered.innerHTML = "Total transfered " + totalDataSize.toFixed(2) + "MB";
+        lastTransferedData.innerHTML = "Last transferred " + dataSize + "KB";
+        totalDataTransfered.innerHTML = "Total transferred " + totalDataSize.toFixed(2) + "MB";
     }
 
     function connect() {
