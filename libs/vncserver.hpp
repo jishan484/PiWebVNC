@@ -29,17 +29,17 @@ class VNCServer
         bool isRunning = true;
         bool sendFirstFrame = false;
         int clientSD = 0;
+        int damage_event, damage_error, test;
 };
 
 VNCServer::VNCServer()
-{
-    int damage_event, damage_error, test;   
+{  
     this->display = xdisplay.getDisplay();
     this->screenInfo = xdisplay.getScreenInfo();
     strcpy(config,xdisplay.getDisplayConfig().c_str());
 
     test = XDamageQueryExtension(display, &damage_event, &damage_error);
-    this->damage = XDamageCreate(display, this->screenInfo.root, XDamageReportNonEmpty);
+    this->damage = XDamageCreate(display, this->screenInfo.root, XDamageReportRawRectangles);
 }
 
 VNCServer::~VNCServer()
@@ -63,6 +63,8 @@ void VNCServer::start_service(Websocket &ws)
     char buffer[bufferSize] = {0};
     int sleepDelay = 1000000 / FPS;
     XImage *image;
+    XDamageNotifyEvent *dmg_ev = NULL;
+    XEvent event;
     while(isRunning)
     {
         usleep(sleepDelay);
@@ -87,27 +89,21 @@ void VNCServer::start_service(Websocket &ws)
             }
             else
             {
-                int partCounts = 0;
-                const XserverRegion xregion = XFixesCreateRegion(this->display, NULL, 0);
-                if(xregion == None) continue;
-                XDamageSubtract(this->display, this->damage, None, xregion);
-                XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
-                if(partCounts > 0 && xregion != 0) { XFixesDestroyRegion(display, xregion); }
-                for (int i = 0; i < partCounts; i++)
+                XNextEvent(display, &event);
+                if (event.type == damage_event + XDamageNotify)
                 {
-                    image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
-                    int frameSize = (rect[i].height * image->bytes_per_line);
+                    dmg_ev = (XDamageNotifyEvent *)&event;
+                    auto rect = dmg_ev->area;
+                    image = XGetImage(display, this->screenInfo.root, rect.x, rect.y, rect.width, rect.height, AllPlanes, ZPixmap);
+                    int frameSize = (rect.height * image->bytes_per_line);
                     int compressedSize = LZ4_compress_default(image->data, buffer, frameSize, bufferSize);
-                    std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " 
-                        + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " 
-                        + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
+                    std::string data = "UPD" + std::to_string(rect.x) + " " + std::to_string(rect.y) + " " + std::to_string(rect.width) + " " + std::to_string(rect.height) + " " + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                     char *info = (char *)data.c_str();
                     int infoSize = strlen(info);
                     ws.sendFrame(info, buffer, infoSize, compressedSize);
                     XDestroyImage(image);
                     usleep(3000);
                 }
-                XFree(rect);
             }
         }
     }
