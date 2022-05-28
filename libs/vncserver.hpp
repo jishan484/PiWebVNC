@@ -63,6 +63,7 @@ void VNCServer::start_service(Websocket &ws)
     char buffer[bufferSize] = {0};
     int sleepDelay = 1000000 / FPS;
     XImage *image;
+    const XserverRegion xregion = XFixesCreateRegion(this->display, NULL, 0);
     while(isRunning)
     {
         usleep(sleepDelay);
@@ -88,11 +89,10 @@ void VNCServer::start_service(Websocket &ws)
             else
             {
                 int partCounts = 0;
-                const XserverRegion xregion = XFixesCreateRegion(this->display, NULL, 0);
                 if(xregion == None) continue;
                 XDamageSubtract(this->display, this->damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
-                if(partCounts > 0 && xregion != 0) { XFixesDestroyRegion(display, xregion); }
+                // if(partCounts > 0 && xregion != 0) { XFixesDestroyRegion(display, xregion); }
                 for (int i = 0; i < partCounts; i++)
                 {
                     image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
