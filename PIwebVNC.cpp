@@ -32,7 +32,11 @@ void firstFrame(int sid)
 
 void onMessageCLBK(void *data, int clientSD)
 {
-    xinputs->processInputs((char *)data, clientSD);
+    if(!xinputs->active)
+    {
+        xinputs->processInputs((char *)data, clientSD);
+    }
+    std::cout << "[INT-ERR] Event overlapped" << std::endl;
 }
 
 void handle_sigint(int sig)
