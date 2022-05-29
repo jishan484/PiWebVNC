@@ -80,25 +80,22 @@ void VNCServer::start_service(Websocket &ws)
                     + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                 char *info = (char *)data.c_str();
                 int infoSize = strlen(info);
+                XDestroyImage(image);
                 ws.sendText(config, this->clientSD);
                 ws.sendFrame(info, buffer, infoSize, compressedSize, this->clientSD);
-                XDestroyImage(image);
                 this->sendFirstFrame = false;
                 usleep(1000000);
             }
             else
             {
                 int partCounts = 0;
-                if(xregion == None){
-                    XserverRegion tempxregion = XFixesCreateRegion(this->display, NULL, 0);
-                    XFixesCopyRegion(this->display, xregion, tempxregion);
-                }
                 XDamageSubtract(this->display, this->damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
                 // if(partCounts > 0 && xregion != 0) { XFixesDestroyRegion(display, xregion); }
                 for (int i = 0; i < partCounts; i++)
                 {
                     image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
+                    // std::cout << &image << " and "<< image << std::endl;
                     int frameSize = (rect[i].height * image->bytes_per_line);
                     int compressedSize = LZ4_compress_default(image->data, buffer, frameSize, bufferSize);
                     std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " 
@@ -106,9 +103,9 @@ void VNCServer::start_service(Websocket &ws)
                         + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                     char *info = (char *)data.c_str();
                     int infoSize = strlen(info);
-                    ws.sendFrame(info, buffer, infoSize, compressedSize);
                     XDestroyImage(image);
-                    usleep(3000);
+                    ws.sendFrame(info, buffer, infoSize, compressedSize);
+                    usleep(1500);
                 }
                 XFree(rect);
             }

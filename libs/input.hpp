@@ -148,6 +148,7 @@ void XInputs::processInputs(char * data , int clientSD)
             XFlush(display);
         }
     }
+    XFlush(display);
     free(data);
 }
 
