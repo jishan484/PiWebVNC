@@ -2,7 +2,7 @@
     PIwebVNC.cpp - main app
 
     =================================
-       Main app for PIwebVNC in C++
+           PIwebVNC app in C++
     =================================
 
     Free to use, free to modify, free to redistribute.
