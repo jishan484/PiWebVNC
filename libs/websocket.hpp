@@ -1,16 +1,16 @@
 /*
     websocket.hpp - source code of
 
-    ============
+    ================
     Websocket in C++
-    ============
+    ================
 
     Free to use, free to modify, free to redistribute.
     Created by : Jishan Ali Mondal
 
     This is a header-only library.
     created for only PIwebVNC
-    * This code purely developed for PIwebVNC for most optimized performance *
+    * This code was created entirely for the most optimized performance for PIwebVNC *
     * May not be suitable for other projects *
     version 1.0.0
 */

@@ -1,3 +1,20 @@
+/*
+    vncserver.hpp - source code
+
+    =================================
+      vnc class for PIwebVNC in C++
+    =================================
+
+    Free to use, free to modify, free to redistribute.
+    Created by : Jishan Ali Mondal
+
+    This is a header-only library.
+    created for only PIwebVNC
+    * This code was created entirely for the most optimized performance for PIwebVNC *
+    * May not be suitable for other projects *
+    version 1.0.1
+*/
+
 #ifndef WEBVNC_HPP
 #define WEBVNC_HPP
 
@@ -11,24 +28,29 @@
 #include <X11/extensions/XTest.h>
 
 #include "display.hpp"
+#include "input.hpp"
 
 class VNCServer
 {
     public:
         XDisplay xdisplay;
+        XInputs *inputs;
         VNCServer();
         ~VNCServer();
         void start_service(Websocket &ws);
         void stop_service();
         void send_first_frame(int sd); // send the first frame to the client
     private:
+        void threadSleep();
         Display * display;
         Damage damage;
         ScreenInfo screenInfo;
-        char config[500] = {0}; // 500byte not too much
+        char config[500] = {0}; // 500 byte not too much
         bool isRunning = true;
         bool sendFirstFrame = false;
         int clientSD = 0;
+        int sleepDelay = 1000000 / FPS;
+        int sleepLoop = 1000000 / FPS / 100000;
 };
 
 VNCServer::VNCServer()
@@ -61,12 +83,11 @@ void VNCServer::start_service(Websocket &ws)
 {
     int bufferSize = (this->screenInfo.height * xdisplay.getBitPerLine()) + (2 * this->screenInfo.width);
     char buffer[bufferSize] = {0};
-    int sleepDelay = 1000000 / FPS;
     XImage *image;
     const XserverRegion xregion = XFixesCreateRegion(this->display, NULL, 0);
     while(isRunning)
     {
-        usleep(sleepDelay);
+        threadSleep();
         if (ws.clients > 0)
         {
             if (this->sendFirstFrame)
@@ -80,19 +101,17 @@ void VNCServer::start_service(Websocket &ws)
                     + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                 char *info = (char *)data.c_str();
                 int infoSize = strlen(info);
+                XDestroyImage(image);
                 ws.sendText(config, this->clientSD);
                 ws.sendFrame(info, buffer, infoSize, compressedSize, this->clientSD);
-                XDestroyImage(image);
                 this->sendFirstFrame = false;
-                usleep(1000000);
+                usleep(100000);
             }
             else
             {
                 int partCounts = 0;
-                // if(xregion == None) continue;
                 XDamageSubtract(this->display, this->damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
-                // if(partCounts > 0 && xregion != 0) { XFixesDestroyRegion(display, xregion); }
                 for (int i = 0; i < partCounts; i++)
                 {
                     image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
@@ -103,13 +122,23 @@ void VNCServer::start_service(Websocket &ws)
                         + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                     char *info = (char *)data.c_str();
                     int infoSize = strlen(info);
-                    ws.sendFrame(info, buffer, infoSize, compressedSize);
                     XDestroyImage(image);
-                    usleep(3000);
+                    ws.sendFrame(info, buffer, infoSize, compressedSize);
                 }
                 XFree(rect);
             }
         }
+    }
+}
+
+void VNCServer::threadSleep()
+{
+    // loop and sleep for 50ms
+    int i = this->sleepLoop;
+    while(i--)
+    {
+        inputs->dispatchEvents();
+        usleep(100000);
     }
 }
 

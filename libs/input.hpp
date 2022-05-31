@@ -10,7 +10,7 @@
 
     This is a header-only library.
     created for only PIwebVNC
-    * This code purely developed for PIwebVNC for most optimized performance *
+    * This code was created entirely for the most optimized performance for PIwebVNC *
     * May not be suitable for other projects *
     version 1.0.0
 */
@@ -31,9 +31,13 @@ class XInputs
 {
     public:
         XInputs(Display * display);
-        void processInputs(char * data , int clinetSD);
+        void processInputs(char *data, int clinetSD);
+        void queueInputs(char *data, int clinetSD);
+        void dispatchEvents();
     private:
         Display *display;
+        char* events[30] = {0};
+        int eventCount = 0;
 };
 
 XInputs::XInputs(Display * display)
@@ -41,7 +45,25 @@ XInputs::XInputs(Display * display)
     this->display = display;
 }
 
-void XInputs::processInputs(char * data , int clientSD)
+void XInputs::queueInputs(char *data, int clinetSD)
+{
+    if (eventCount < 30)
+    {
+        events[eventCount] = data;
+        eventCount++;
+    }
+}
+
+void XInputs::dispatchEvents(){
+    for(int i = 0; i < eventCount; i++){
+        if(events[i] != NULL){
+            processInputs(events[i], 0);
+        }
+    }
+    eventCount = 0;
+}
+
+void XInputs::processInputs(char *data, int clientSD)
 {
     int len = strlen(data);
     int x = 0, y = 0, i = 1, x2 = 0, y2 = 0;
@@ -100,11 +122,9 @@ void XInputs::processInputs(char * data , int clientSD)
             y2 = y2 * 10 + data[i++] - 48;
         if (display == 0)
             return;
-        XTestFakeMotionEvent(display, -1, x, y, 0);
-        XTestFakeButtonEvent(display, 1, True, 0);
-        XTestFakeMotionEvent(display, -1, x2, y2, 0);
-        // usleep(1000000);
-        // XTestFakeButtonEvent(display, 1, False, 10);
+        XTestFakeMotionEvent(display, -1, x, y, CurrentTime);
+        XTestFakeButtonEvent(display, 1, True, CurrentTime);
+        XTestFakeMotionEvent(display, -1, x2, y2, CurrentTime);
         XFlush(display);
     }
     else if (data[0] == 'S')
@@ -125,8 +145,8 @@ void XInputs::processInputs(char * data , int clientSD)
         if (data[1] == 49)
         {
             int keycode = XKeysymToKeycode(display, XStringToKeysym(data + 2));
-            XTestFakeKeyEvent(display, keycode, True, 0);
-            XTestFakeKeyEvent(display, keycode, False, 0);
+            XTestFakeKeyEvent(display, keycode, True, CurrentTime);
+            XTestFakeKeyEvent(display, keycode, False, CurrentTime);
             XFlush(display);
         }
         else if (data[1] == 50)
@@ -148,6 +168,7 @@ void XInputs::processInputs(char * data , int clientSD)
             XFlush(display);
         }
     }
+    XFlush(display);
     free(data);
 }
 
