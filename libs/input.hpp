@@ -10,7 +10,7 @@
 
     This is a header-only library.
     created for only PIwebVNC
-    * This code purely developed for PIwebVNC for most optimized performance *
+    * This code was created entirely for the most optimized performance for PIwebVNC *
     * May not be suitable for other projects *
     version 1.0.0
 */
@@ -31,10 +31,13 @@ class XInputs
 {
     public:
         XInputs(Display * display);
-        void processInputs(char * data , int clinetSD);
-        bool active = false;
+        void processInputs(char *data, int clinetSD);
+        void queueInputs(char *data, int clinetSD);
+        void dispatchEvents();
     private:
         Display *display;
+        char* events[30] = {0};
+        int eventCount = 0;
 };
 
 XInputs::XInputs(Display * display)
@@ -42,9 +45,26 @@ XInputs::XInputs(Display * display)
     this->display = display;
 }
 
-void XInputs::processInputs(char * data , int clientSD)
+void XInputs::queueInputs(char *data, int clinetSD)
 {
-    this->active = true;
+    if (eventCount < 30)
+    {
+        events[eventCount] = data;
+        eventCount++;
+    }
+}
+
+void XInputs::dispatchEvents(){
+    for(int i = 0; i < eventCount; i++){
+        if(events[i] != NULL){
+            processInputs(events[i], 0);
+        }
+    }
+    eventCount = 0;
+}
+
+void XInputs::processInputs(char *data, int clientSD)
+{
     int len = strlen(data);
     int x = 0, y = 0, i = 1, x2 = 0, y2 = 0;
     if (data[0] == 'C')
@@ -105,8 +125,6 @@ void XInputs::processInputs(char * data , int clientSD)
         XTestFakeMotionEvent(display, -1, x, y, CurrentTime);
         XTestFakeButtonEvent(display, 1, True, CurrentTime);
         XTestFakeMotionEvent(display, -1, x2, y2, CurrentTime);
-        // usleep(1000000);
-        // XTestFakeButtonEvent(display, 1, False, 10);
         XFlush(display);
     }
     else if (data[0] == 'S')
@@ -152,7 +170,6 @@ void XInputs::processInputs(char * data , int clientSD)
     }
     XFlush(display);
     free(data);
-    this->active = false;
 }
 
 #endif

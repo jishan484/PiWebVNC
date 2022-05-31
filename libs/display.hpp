@@ -1,5 +1,5 @@
 /*
-    display.hpp - source code of
+    display.hpp - source code
 
     =================================
     Display class for PIwebVNC in C++
@@ -10,9 +10,9 @@
 
     This is a header-only library.
     created for only PIwebVNC
-    * This code purely developed for PIwebVNC for most optimized performance *
+    * This code was created entirely for the most optimized performance for PIwebVNC *
     * May not be suitable for other projects *
-    version 1.0.0
+    version 1.0.1
 */
 
 #ifndef DISPLAY_HPP

@@ -15,7 +15,7 @@
 #define MAX_BUFFER_SIZE 1024
 
 //   =======display=========
-#define FPS 10   // for pi zero set 5 [max 10 for pi4]
+#define FPS 1   // for pi zero set 5 [max 10 for pi4]
 #define FRAME_SEGMENTS_DELAY_MS 20    // for pi zero set 100
 
 #endif
