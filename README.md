@@ -68,9 +68,6 @@ max RAM usage PI4 2GB model : `0.7%`
 ####    [only available for x86]
 It is always better to compile it in your PC. To compile this in your PC please check [Installation process](#installation-process) (this will install some dependencies in your Pi)
 You can download pre-compiled app from links below
-  1. [PiWebVNC_ARMv6_v1](https://github.com/jishan484/PiWebVNC/releases/download/ARMv6/PiWebVNC) for ARMv6 - Pi zero , Pi zero w , Pi 1
-  2. `not available` for ARMv7 - Pi 3 , Pi 2w
-  3. [PiWebVNC_ARMv8_v1](https://github.com/jishan484/PiWebVNC/releases/download/ARMv8/PiWebVNC) for ARMv8 - Pi 4
-  4. [PiWebVNC_x86_v1](https://github.com/jishan484/PiWebVNC/releases/download/x86_cpu/PiWebVNC) for x86 - AMD64 PC with linux and xOrg desktop manager
+  NOT AVAILABLE. PLEASE COMPILE IT USING `compile.sh` SCRIPT.
 
 #### `please note that, this software does not provide any security features. Only use for low risk projects in your local network. A secure version is under development.`
