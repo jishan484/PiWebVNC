@@ -62,7 +62,8 @@ max RAM usage PI4 2GB model : `0.7%`
 * Easily transfer Files / Folders from web client. [not implemented : TODO]
 * password authentication. [not implemented : TODO]
 
-![image](https://user-images.githubusercontent.com/49402826/163715482-ae7e166f-7ac2-4baa-a946-9770576c0bf5.png)
+![Image0101](https://user-images.githubusercontent.com/49402826/171990825-30321f79-c50e-4b03-aac5-eb9c029d7f3b.png)
+
 
 ## Pre compiled Binaries
 ####    [only available for x86]
