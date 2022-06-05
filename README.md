@@ -20,6 +20,9 @@ open `http://localhost:8000` in browser<br>
 or<br>
 open `http://--ip-of-raspberry-pi--:8000` from another pc browser E.g. `http://192.168.0.15:8000`
 
+#### Configure
+Open libs/appConfigs.hpp to configure this app, like PORT , MAX clients etc.
+HTTPS or WSS configuration will be available soon [#5_issue](/../../issues/5)
 
 #### Configure
 Open libs/appConfigs.hpp to configure this app, like PORT , MAX clients etc.
