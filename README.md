@@ -22,7 +22,7 @@ open `http://--ip-of-raspberry-pi--:8000` from another pc browser E.g. `http://1
 
 #### Configure
 Open libs/appConfigs.hpp to configure this app, like PORT , MAX clients etc.
-HTTPS or WSS configuration will be avalable soon [#5_issue](/../../issues/5)
+HTTPS or WSS configuration will be available soon [#5_issue](/../../issues/5)
 
 ### Auto start
 Use this auto-start method to run this app at startup
