@@ -225,6 +225,11 @@ void Websocket::handshake(char *data, int sd, int sid)
             break;
         }
         ptr = strtok(NULL, "\n");
+        // callback
+        if (callBack != NULL && flag)
+        {
+            (*callBack)(sid);
+        }
     }
     if (!flag)
     {
@@ -234,11 +239,6 @@ void Websocket::handshake(char *data, int sd, int sid)
         client_socket[sid] = 0;
         this->ws_client_socket[sid] = 0;
         clients--;
-    }
-    // callback
-    if (callBack != NULL)
-    {
-        (*callBack)(sid);
     }
 }
 
