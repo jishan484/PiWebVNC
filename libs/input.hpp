@@ -58,6 +58,7 @@ void XInputs::dispatchEvents(){
     for(int i = 0; i < eventCount; i++){
         if(events[i] != NULL){
             processInputs(events[i], 0);
+            events[i] = NULL;
         }
     }
     eventCount = 0;
