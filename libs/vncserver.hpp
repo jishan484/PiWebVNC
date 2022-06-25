@@ -50,7 +50,7 @@ class VNCServer
         bool sendFirstFrame = false;
         int clientSD = 0;
         int sleepDelay = 1000000 / FPS;
-        int sleepLoop = 1000000 / FPS / 100000;
+        int sleepLoop = (1000000 / FPS)/sleepDelay;
         int bufferSize = 1000000;
         char *buffer;
 };
@@ -148,7 +148,7 @@ void VNCServer::threadSleep()
     while(i--)
     {
         inputs->dispatchEvents();
-        usleep(100000);
+        usleep(sleepDelay);
     }
 }
 
