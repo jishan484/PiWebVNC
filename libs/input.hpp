@@ -36,7 +36,7 @@ class XInputs
         void dispatchEvents();
     private:
         Display *display;
-        char* events[30] = {0};
+        char events[30][100] = {0};
         int eventCount = 0;
 };
 
@@ -49,16 +49,16 @@ void XInputs::queueInputs(char *data, int clinetSD)
 {
     if (eventCount < 30)
     {
-        events[eventCount] = data;
+        strcpy(events[eventCount], data);
         eventCount++;
     }
 }
 
 void XInputs::dispatchEvents(){
     for(int i = 0; i < eventCount; i++){
-        if(events[i] != NULL){
+        if(events[i][0] != 0){
             processInputs(events[i], 0);
-            events[i] = NULL;
+            events[i][0] = 0;
         }
     }
     eventCount = 0;
@@ -170,7 +170,6 @@ void XInputs::processInputs(char *data, int clientSD)
         }
     }
     XFlush(display);
-    free(data);
 }
 
 #endif

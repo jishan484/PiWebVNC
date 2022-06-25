@@ -55,7 +55,7 @@ private:
     void handshake(char *d, int sd, int sid);
     void sendRaw(int startByte, char *data, long imgSize, int sid);
     void sendRaw(int startByte, char *data, char *data2, long data1Size, long data2Size, int sid);
-    char *decode(char *data);
+    void decode(char *src,char * dest);
     void (*callBack)(int sid) = NULL;
     void (*callBackMsg)(void *data, int sid) = NULL;
 };
@@ -185,7 +185,9 @@ void Websocket::connections()
                         {
                             if (callBackMsg != NULL)
                             {
-                                callBackMsg(decode(buffer), i);
+                                char inputData[200]={0};
+                                decode(buffer , inputData);
+                                callBackMsg(inputData, i);
                             }
                         }
                     }
@@ -205,8 +207,8 @@ void Websocket::handshake(char *data, int sd, int sid)
     {
         if (ptr[0] == 'S' && ptr[4] == 'W' && ptr[14] == 'K')
         {
-            int i = 18;
-            while (i++ < strlen(ptr) - 2)
+            int i = 18, len = strlen(ptr) - 2;
+            while (i++ < len)
             {
                 key += ptr[i];
             }
@@ -353,12 +355,11 @@ void Websocket::sendRaw(int startByte, char *data1, char *data2, long data1Size,
     }
 }
 
-char *Websocket::decode(char *data)
+void Websocket::decode(char *data , char * result)
 {
+    if(data[0] == 0) return;
     // decode a websocket frame which is less than 125 bytes
-    char *result;
     int size = data[1] & 127;
-    result = (char *)malloc(size * sizeof(char));
     int index = 2;
     for (int i = 6; i < size + 6; i++)
     {
@@ -368,6 +369,5 @@ char *Websocket::decode(char *data)
             index = 2;
         }
     }
-    return result;
 }
 #endif
