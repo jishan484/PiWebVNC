@@ -50,7 +50,7 @@ class VNCServer
         bool sendFirstFrame = false;
         int clientSD = 0;
         int sleepDelay = 1000000 / FPS;
-        int sleepLoop = (1000000 / FPS)/sleepDelay;
+        int sleepLoop = (1000000 / FPS)/this->sleepDelay;
         int bufferSize = 1000000;
         char *buffer;
 };
@@ -58,14 +58,14 @@ class VNCServer
 VNCServer::VNCServer()
 {
     int damage_event, damage_error;   
-    this->display = xdisplay.getDisplay();
-    this->screenInfo = xdisplay.getScreenInfo();
-    strcpy(config,xdisplay.getDisplayConfig().c_str());
+    this->display = this->xdisplay.getDisplay();
+    this->screenInfo = this->xdisplay.getScreenInfo();
+    strcpy(this->config,this->xdisplay.getDisplayConfig().c_str());
 
     XDamageQueryExtension(display, &damage_event, &damage_error);
     this->damage = XDamageCreate(display, this->screenInfo.root, XDamageReportNonEmpty);
 
-    this->bufferSize = (this->screenInfo.height * xdisplay.getBitPerLine()) + (2 * this->screenInfo.width);
+    this->bufferSize = (this->screenInfo.height * this->xdisplay.getBitPerLine()) + (2 * this->screenInfo.width);
     this->buffer = (char *)malloc(this->bufferSize * sizeof(char));
     if (this->buffer == NULL)
     {
@@ -76,10 +76,10 @@ VNCServer::VNCServer()
 
 VNCServer::~VNCServer()
 {
-    free(buffer);
+    free(this->buffer);
     printf("[INFO] Memory released for VNC buffer.\n");
     XDamageDestroy(display, damage);
-    xdisplay.close();
+    this->xdisplay.close();
 }
 
 void VNCServer::stop_service()
@@ -95,7 +95,7 @@ void VNCServer::start_service(Websocket &ws)
 {
     register XImage *image;
     const XserverRegion xregion = XFixesCreateRegion(this->display, NULL, 0);
-    while(isRunning)
+    while(this->isRunning)
     {
         threadSleep();
         if (ws.clients > 0)
@@ -112,7 +112,7 @@ void VNCServer::start_service(Websocket &ws)
                 char *info = (char *)data.c_str();
                 int infoSize = strlen(info);
                 XDestroyImage(image);
-                ws.sendText(config, this->clientSD);
+                ws.sendText(this->config, this->clientSD);
                 ws.sendFrame(info, buffer, infoSize, compressedSize, this->clientSD);
                 this->sendFirstFrame = false;
                 usleep(100000);
@@ -133,9 +133,14 @@ void VNCServer::start_service(Websocket &ws)
                     char *info = (char *)data.c_str();
                     int infoSize = strlen(info);
                     if(!XDestroyImage(image)) free(image);
-                    ws.sendFrame(info, buffer, infoSize, compressedSize);
+                    ws.sendFrame(info, this->buffer, infoSize, compressedSize);
                 }
                 XFree(rect);
+            }
+        }
+        else{
+            while(ws.clients == 0){
+                sleep(1);
             }
         }
     }
@@ -147,8 +152,8 @@ void VNCServer::threadSleep()
     int i = this->sleepLoop;
     while(i--)
     {
-        inputs->dispatchEvents();
-        usleep(sleepDelay);
+        this->inputs->dispatchEvents();
+        usleep(this->sleepDelay);
     }
 }
 

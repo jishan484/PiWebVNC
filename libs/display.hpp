@@ -59,7 +59,7 @@ XDisplay::XDisplay()
     try
     {
         std::string envDisplay = std::string(getenv("DISPLAY"));
-        display = XOpenDisplay(envDisplay.c_str());
+        this->display = XOpenDisplay(envDisplay.c_str());
     }
     catch (std::exception &e)
     {
@@ -67,15 +67,15 @@ XDisplay::XDisplay()
             std::cout << "[LOG] No env set for display. Trying default.[0 to 9]." << std::endl;
         #endif
         int displayNumber = 0;
-        while (display == 0 && displayNumber < 10)
+        while (this->display == 0 && displayNumber < 10)
         {
             std::string displayNumberStr = ":" + std::to_string(displayNumber);
             std::cout << "[LOG] Trying display number " << displayNumberStr << std::endl;
-            display = XOpenDisplay(displayNumberStr.c_str());
+            this->display = XOpenDisplay(displayNumberStr.c_str());
             displayNumber++;
         }
     }
-    if (display == 0)
+    if (this->display == 0)
     {
         #if ERROR || DEBUG
             std::cout << "[ERROR][EXIT APP] Could not open display. Please pass --display [id].\n\t eg: --display 18." << std::endl;
@@ -89,23 +89,23 @@ XDisplay::XDisplay()
 XDisplay::~XDisplay()
 {
     // free display
-    if(display != 0) {
+    if(this->display != 0) {
         #if LOG
             std::cout << "[LOG] Closing display." << std::endl;
         #endif
-        XCloseDisplay(display);
-        display = 0;
+        XCloseDisplay(this->display);
+        this->display = 0;
     }
 }
 
 Display * XDisplay::getDisplay()
 {
-    return display;
+    return this->display;
 }
 
 int XDisplay::getBitPerLine()
 {
-    return bitPerLine;
+    return this->bitPerLine;
 }
 
 std::string XDisplay::getDisplayConfig()
@@ -113,7 +113,7 @@ std::string XDisplay::getDisplayConfig()
     ScreenInfo screenInfo = getScreenInfo();
     int width = screenInfo.width;
     int height = screenInfo.height;
-    XImage * img = XGetImage(display, DefaultRootWindow(display), 0, 0, width, height, AllPlanes, ZPixmap);
+    XImage * img = XGetImage(this->display, DefaultRootWindow(this->display), 0, 0, width, height, AllPlanes, ZPixmap);
     std::string config = "{ 'bytePerLine':" + std::to_string(img->bytes_per_line) +
                          ",'redMask':" + std::to_string(img->red_mask) +
                          ",'greenMask':" + std::to_string(img->green_mask) +
@@ -131,7 +131,7 @@ std::string XDisplay::getDisplayConfig()
 std::string XDisplay::getCursorName()
 {
     // get cursor name using xfixes
-    XFixesCursorImage *cursorImage = XFixesGetCursorImage(display);
+    XFixesCursorImage *cursorImage = XFixesGetCursorImage(this->display);
     if (cursorImage == 0)
     {
         #if ERROR || DEBUG
@@ -147,9 +147,9 @@ ScreenInfo XDisplay::getScreenInfo()
 {
     ScreenInfo screenInfo;
     // get screen info from root window
-    screenInfo.root = DefaultRootWindow(display);
-    screenInfo.width = DisplayWidth(display, DefaultScreen(display));
-    screenInfo.height = DisplayHeight(display, DefaultScreen(display));
+    screenInfo.root = DefaultRootWindow(this->display);
+    screenInfo.width = DisplayWidth(this->display, DefaultScreen(this->display));
+    screenInfo.height = DisplayHeight(this->display, DefaultScreen(this->display));
     return screenInfo;
 }
 

@@ -52,10 +52,10 @@ private:
     int socketPort = 8080;
     int server_fd;
     void connections();
-    void handshake(char *d, int sd, int sid);
+    void handshake(unsigned char *d, int sd, int sid);
     void sendRaw(int startByte, char *data, long imgSize, int sid);
     void sendRaw(int startByte, char *data, char *data2, long data1Size, long data2Size, int sid);
-    void decode(char *src,char * dest);
+    void decode(unsigned char *src,char * dest);
     void (*callBack)(int sid) = NULL;
     void (*callBackMsg)(void *data, int sid) = NULL;
 };
@@ -84,7 +84,7 @@ void Websocket::connections()
     struct sockaddr_in address;
     int opt = 1, max_sd = 0;
     int addrlen = sizeof(address);
-    char buffer[1024] = {0};
+    unsigned char buffer[1024] = {0};
     fd_set readfds;
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -95,7 +95,7 @@ void Websocket::connections()
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+    if (setsockopt(this->server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
     {
         perror("setsockopt");
         exit(EXIT_FAILURE);
@@ -105,17 +105,17 @@ void Websocket::connections()
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
-    if (listen(server_fd, 3) < 0)
+    if (listen(this->server_fd, 3) < 0)
     {
         perror("listen");
         exit(EXIT_FAILURE);
     }
     std::cout << "[I] Waiting for connections ...port " << this->socketPort << " opened (HTTP/WS)\n";
-    while (!stop)
+    while (!this->stop)
     {
         FD_ZERO(&readfds);
-        FD_SET(server_fd, &readfds);
-        max_sd = server_fd;
+        FD_SET(this->server_fd, &readfds);
+        max_sd = this->server_fd;
         for (int i = 0; i < 5; i++)
         {
             int sd = client_socket[i];
@@ -129,14 +129,14 @@ void Websocket::connections()
         {
             perror("bind failed");
         }
-        if (FD_ISSET(server_fd, &readfds))
+        if (FD_ISSET(this->server_fd, &readfds))
         {
-            if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
+            if ((new_socket = accept(this->server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
             {
                 perror("accept");
                 exit(EXIT_FAILURE);
             }
-            ready = 1;
+            this->ready = 1;
             printf("[I] New connection , socket fd is %d , ip is : %s , port : %d \n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
             for (int i = 0; i < 30; i++)
             {
@@ -179,7 +179,7 @@ void Websocket::connections()
                             client_socket[i] = 0;
                             this->ws_client_socket[i] = 0;
                             clients--;
-                            printf("client dicon : %d\n", sd);
+                            printf("Host disconnected : %d\n", sd);
                         }
                         else
                         {
@@ -198,10 +198,10 @@ void Websocket::connections()
     std::cout << "[I] Server closed\n";
 }
 
-void Websocket::handshake(char *data, int sd, int sid)
+void Websocket::handshake(unsigned char *data, int sd, int sid)
 {
     bool flag = false;
-    char *ptr = strtok(data, "\n");
+    char *ptr = strtok((char *)data, "\n");
     std::string key;
     while (ptr != NULL)
     {
@@ -222,7 +222,7 @@ void Websocket::handshake(char *data, int sd, int sid)
             strcpy(char_array, response.c_str());
             send(sd, char_array, response.length(), 0);
             this->ws_client_socket[sid] = 1;
-            ready = 1;
+            this->ready = 1;
             flag = true;
             break;
         }
@@ -348,14 +348,13 @@ void Websocket::sendRaw(int startByte, char *data1, char *data2, long data1Size,
     {
         if (client_socket[i] == 0 || this->ws_client_socket[i] == 0)
             continue;
-        // max optimisation for sending data
-        send(client_socket[i], header, moded, 0);    // for websocket header
+        send(client_socket[i], header, moded, 0); // for websocket header
         send(client_socket[i], data1, data1Size, 0); // for websocket data 1
         send(client_socket[i], data2, data2Size, 0); // for websocket data 2
     }
 }
 
-void Websocket::decode(char *data , char * result)
+void Websocket::decode(unsigned char *data, char *result)
 {
     if(data[0] == 0) return;
     // decode a websocket frame which is less than 125 bytes
