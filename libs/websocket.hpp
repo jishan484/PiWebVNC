@@ -29,6 +29,7 @@
 #include "sha1.hpp"
 #include "base64.hpp"
 #include "httpPage.hpp"
+#include "appConfigs.hpp"
 
 #define PORT 8080
 
@@ -50,6 +51,7 @@ public:
 
 private:
     int socketPort = 8080;
+    int max_clients = (MAX_CLIENTS < 25) ? MAX_CLIENTS : 25;
     int server_fd;
     void connections();
     void handshake(unsigned char *d, int sd, int sid);
@@ -116,7 +118,7 @@ void Websocket::connections()
         FD_ZERO(&readfds);
         FD_SET(this->server_fd, &readfds);
         max_sd = this->server_fd;
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < this->max_clients; i++)
         {
             int sd = client_socket[i];
             if (sd > 0)
@@ -137,20 +139,29 @@ void Websocket::connections()
                 exit(EXIT_FAILURE);
             }
             this->ready = 1;
+            bool isAccespted = false;
             printf("[I] New connection , socket fd is %d , ip is : %s , port : %d \n", new_socket, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
-            for (int i = 0; i < 30; i++)
+            for (int i = 0; i < this->max_clients; i++)
             {
-                if (client_socket[i] == 0)
+                if (client_socket[i] == 0 && clients < this->max_clients)
                 {
                     client_socket[i] = new_socket;
                     clients++;
+                    isAccespted = true;
                     break;
                 }
+            }
+            if (!isAccespted)
+            {
+                //reject connection
+                send(new_socket, "HTTP/1.1 400 Bad Request\r\n\r\n", 25, 0);
+                close(new_socket);
+                printf("[E] Max connections reached\n");
             }
         }
         else
         {
-            for (int i = 0; i < 30; i++)
+            for (int i = 0; i < this->max_clients; i++)
             {
                 if (client_socket[i] == 0)
                     continue;
@@ -179,7 +190,7 @@ void Websocket::connections()
                             client_socket[i] = 0;
                             this->ws_client_socket[i] = 0;
                             clients--;
-                            printf("Host disconnected : %d\n", sd);
+                            printf("Host disconnected : %d | current active clients %d\n", sd,clients);
                         }
                         else
                         {
