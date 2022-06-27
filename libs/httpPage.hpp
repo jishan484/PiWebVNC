@@ -9736,13 +9736,13 @@ void parseHttpPage()
                 return false;
             };
             canvas.onmousemove = function(e) {
-                clearTimeout(mouseMoveTimeOut);
-                mouseMoveTimeOut = setTimeout(function(){
+                //clearTimeout(mouseMoveTimeOut);
+                //mouseMoveTimeOut = setTimeout(function(){
                     var x = Math.floor(e.offsetX / canvas.offsetWidth * canvas.width)
                     var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
                     data = "M" + x + " " + y + " ";
                     ws.send(data);
-                }, 200);
+                //}, 200);
             }
             canvas.onwheel = function(e){
                 e.preventDefault();
