@@ -50,24 +50,36 @@ class VNCServer
         bool sendFirstFrame = false;
         int clientSD = 0;
         int sleepDelay = 1000000 / FPS;
-        int sleepLoop = 1000000 / FPS / 100000;
+        int sleepLoop = (1000000 / FPS)/this->sleepDelay;
+        int bufferSize = 1000000;
+        char *buffer;
 };
 
 VNCServer::VNCServer()
 {
-    int damage_event, damage_error, test;   
-    this->display = xdisplay.getDisplay();
-    this->screenInfo = xdisplay.getScreenInfo();
-    strcpy(config,xdisplay.getDisplayConfig().c_str());
+    int damage_event, damage_error;   
+    this->display = this->xdisplay.getDisplay();
+    this->screenInfo = this->xdisplay.getScreenInfo();
+    strcpy(this->config,this->xdisplay.getDisplayConfig().c_str());
 
-    test = XDamageQueryExtension(display, &damage_event, &damage_error);
+    XDamageQueryExtension(display, &damage_event, &damage_error);
     this->damage = XDamageCreate(display, this->screenInfo.root, XDamageReportNonEmpty);
+
+    this->bufferSize = (this->screenInfo.height * this->xdisplay.getBitPerLine()) + (2 * this->screenInfo.width);
+    this->buffer = (char *)malloc(this->bufferSize * sizeof(char));
+    if (this->buffer == NULL)
+    {
+        printf("[ERROR] Memory not allocated for VNC buffer.\n");
+        exit(0);
+    }
 }
 
 VNCServer::~VNCServer()
 {
+    free(this->buffer);
+    printf("[INFO] Memory released for VNC buffer.\n");
     XDamageDestroy(display, damage);
-    xdisplay.close();
+    this->xdisplay.close();
 }
 
 void VNCServer::stop_service()
@@ -81,11 +93,9 @@ void VNCServer::send_first_frame(int sd)
 }
 void VNCServer::start_service(Websocket &ws)
 {
-    int bufferSize = (this->screenInfo.height * xdisplay.getBitPerLine()) + (2 * this->screenInfo.width);
-    char buffer[bufferSize] = {0};
-    XImage *image;
+    register XImage *image;
     const XserverRegion xregion = XFixesCreateRegion(this->display, NULL, 0);
-    while(isRunning)
+    while(this->isRunning)
     {
         threadSleep();
         if (ws.clients > 0)
@@ -95,14 +105,14 @@ void VNCServer::start_service(Websocket &ws)
                 image = XGetImage(this->display, this->screenInfo.root, 0, 0, this->screenInfo.width
                     , this->screenInfo.height, AllPlanes, ZPixmap);
                 int frameSize = ((this->screenInfo.height - 1) * image->bytes_per_line + (this->screenInfo.width - 1));
-                int compressedSize = LZ4_compress_default(image->data, buffer, frameSize, bufferSize);
+                int compressedSize = LZ4_compress_default(image->data, this->buffer, frameSize, this->bufferSize);
                 std::string data = "UPD" + std::to_string(0) + " " + std::to_string(0) + " " 
                     + std::to_string(this->screenInfo.width) + " " + std::to_string(this->screenInfo.height) + " " 
                     + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                 char *info = (char *)data.c_str();
                 int infoSize = strlen(info);
                 XDestroyImage(image);
-                ws.sendText(config, this->clientSD);
+                ws.sendText(this->config, this->clientSD);
                 ws.sendFrame(info, buffer, infoSize, compressedSize, this->clientSD);
                 this->sendFirstFrame = false;
                 usleep(100000);
@@ -116,16 +126,21 @@ void VNCServer::start_service(Websocket &ws)
                 {
                     image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
                     int frameSize = (rect[i].height * image->bytes_per_line);
-                    int compressedSize = LZ4_compress_default(image->data, buffer, frameSize, bufferSize);
+                    int compressedSize = LZ4_compress_default(image->data, this->buffer, frameSize, this->bufferSize);
                     std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " 
                         + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " 
                         + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                     char *info = (char *)data.c_str();
                     int infoSize = strlen(info);
-                    XDestroyImage(image);
-                    ws.sendFrame(info, buffer, infoSize, compressedSize);
+                    if(!XDestroyImage(image)) free(image);
+                    ws.sendFrame(info, this->buffer, infoSize, compressedSize);
                 }
                 XFree(rect);
+            }
+        }
+        else{
+            while(ws.clients == 0){
+                sleep(1);
             }
         }
     }
@@ -137,8 +152,8 @@ void VNCServer::threadSleep()
     int i = this->sleepLoop;
     while(i--)
     {
-        inputs->dispatchEvents();
-        usleep(100000);
+        this->inputs->dispatchEvents();
+        usleep(this->sleepDelay);
     }
 }
 

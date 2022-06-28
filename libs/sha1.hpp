@@ -248,7 +248,8 @@ int char2int(char input)
 std::string hex2bin(std::string src)
 {
     std::string target = "";
-    for (int i = 0; i < src.length(); i += 2)
+    int len = src.length();
+    for (int i = 0; i < len; i += 2)
     {
         target += char2int(src[i]) * 16 + char2int(src[i + 1]);
     }
