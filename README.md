@@ -29,7 +29,7 @@ Use this auto-start method to run this app at startup
 ###### Note : You can use different methods also.
 ```sh
 u=$(who|awk '{print $1}')
-echo "[Unit]
+sudo echo "[Unit]
 Description=Remote desktop service (VNC)
 
 [Service]
