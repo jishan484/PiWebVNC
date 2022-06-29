@@ -27,7 +27,7 @@ HTTPS or WSS configuration will be available soon [#5_issue](/../../issues/5)
 ### Auto start
 Use this auto-start method to run this app at startup
 ###### Note : You can use different methods also.
-```shell
+```sh
 u=$(who|awk '{print $1}')
 echo "[Unit]
 Description=Remote desktop service (VNC)
