@@ -28,14 +28,16 @@ HTTPS or WSS configuration will be available soon [#5_issue](/../../issues/5)
 Use this auto-start method to run this app at startup
 ###### Note : You can use different methods also.
 ```shell
-sudo echo "[Unit]
+u=$(who|awk '{print $1}')
+echo "[Unit]
 Description=Remote desktop service (VNC)
-After=syslog.target network.target multi-user.target
+
 [Service]
-Type=simple
+User="$u"
 ExecStart=/PiWebVNC
 Restart=always
 RestartSec=10
+
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/PiWebVNC.service
 ```
