@@ -12,7 +12,7 @@ struct HttpHTMLPage
 
 void parseHttpPage()
 {
-    htmlPage.index_html = std::string("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n") + R"html(
+    htmlPage.index_html = std::string("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nServer: PIwebVNC (by Jishan)\r\n\r\n") + R"html(
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9742,7 +9742,7 @@ void parseHttpPage()
                     var y = Math.floor(e.offsetY / canvas.offsetHeight * canvas.height)
                     data = "M" + x + " " + y + " ";
                     ws.send(data);
-                }, 200);
+                }, 100);
             }
             canvas.onwheel = function(e){
                 e.preventDefault();

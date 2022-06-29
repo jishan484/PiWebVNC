@@ -34,9 +34,9 @@ XInputs *xinputs;    // XInputs object
 /**
  * main loop to send frames to the client
  */
-void frameLoop(Websocket *ws)
+void frameLoop()
 {
-    vncServer.start_service(*ws);
+    vncServer.start_service(*wss);
 }
 
 void firstFrame(int sid)
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     xinputs = &input;
     signal(SIGINT, handle_sigint);
     std::thread t1 = ws.begin(SERVER_PORT);
-    std::thread t2(frameLoop, &ws);
+    std::thread t2(frameLoop);
     ws.onMessage(onMessageCLBK);
     ws.onConnect(firstFrame);
     

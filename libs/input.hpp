@@ -36,7 +36,7 @@ class XInputs
         void dispatchEvents();
     private:
         Display *display;
-        char* events[30] = {0};
+        char events[30][100] = {0};
         int eventCount = 0;
 };
 
@@ -47,20 +47,22 @@ XInputs::XInputs(Display * display)
 
 void XInputs::queueInputs(char *data, int clinetSD)
 {
-    if (eventCount < 30)
+    if (this->eventCount < 30)
     {
-        events[eventCount] = data;
-        eventCount++;
+        strcpy(this->events[this->eventCount], data);
+        this->eventCount++;
     }
 }
 
 void XInputs::dispatchEvents(){
-    for(int i = 0; i < eventCount; i++){
-        if(events[i] != NULL){
-            processInputs(events[i], 0);
+    for(int i = 0; i < this->eventCount; i++){
+        if (events[i][0] != 0)
+        {
+            processInputs(this->events[i], 0);
+            this->events[i][0] = 0;
         }
     }
-    eventCount = 0;
+    this->eventCount = 0;
 }
 
 void XInputs::processInputs(char *data, int clientSD)
@@ -74,12 +76,12 @@ void XInputs::processInputs(char *data, int clientSD)
         i++;
         while (data[i] != 32 && i < len)
             y = y * 10 + data[i++] - 48;
-        if (display == 0)
+        if (this->display == 0)
             return;
-        XTestFakeMotionEvent(display, -1, x, y, CurrentTime);
-        XTestFakeButtonEvent(display, 1, True, CurrentTime);
-        XTestFakeButtonEvent(display, 1, False, CurrentTime);
-        XFlush(display);
+        XTestFakeMotionEvent(this->display, -1, x, y, CurrentTime);
+        XTestFakeButtonEvent(this->display, 1, True, CurrentTime);
+        XTestFakeButtonEvent(this->display, 1, False, CurrentTime);
+        XFlush(this->display);
     }
     else if (data[0] == 'M')
     {
@@ -88,10 +90,10 @@ void XInputs::processInputs(char *data, int clientSD)
         i++;
         while (data[i] != 32 && i < len)
             y = y * 10 + data[i++] - 48;
-        if (display == 0)
+        if (this->display == 0)
             return;
-        XTestFakeMotionEvent(display, -1, x, y, CurrentTime);
-        XFlush(display);
+        XTestFakeMotionEvent(this->display, -1, x, y, CurrentTime);
+        XFlush(this->display);
     }
     else if (data[0] == 'R')
     {
@@ -100,12 +102,12 @@ void XInputs::processInputs(char *data, int clientSD)
         i++;
         while (data[i] != 32 && i < len)
             y = y * 10 + data[i++] - 48;
-        if (display == 0)
+        if (this->display == 0)
             return;
-        XTestFakeMotionEvent(display, -1, x, y, CurrentTime);
-        XTestFakeButtonEvent(display, 3, True, CurrentTime);
-        XTestFakeButtonEvent(display, 3, False, CurrentTime);
-        XFlush(display);
+        XTestFakeMotionEvent(this->display, -1, x, y, CurrentTime);
+        XTestFakeButtonEvent(this->display, 3, True, CurrentTime);
+        XTestFakeButtonEvent(this->display, 3, False, CurrentTime);
+        XFlush(this->display);
     }
     else if (data[0] == 'D')
     {
@@ -120,34 +122,34 @@ void XInputs::processInputs(char *data, int clientSD)
         i++;
         while (data[i] != 32 && i < len)
             y2 = y2 * 10 + data[i++] - 48;
-        if (display == 0)
+        if (this->display == 0)
             return;
-        XTestFakeMotionEvent(display, -1, x, y, CurrentTime);
-        XTestFakeButtonEvent(display, 1, True, CurrentTime);
-        XTestFakeMotionEvent(display, -1, x2, y2, CurrentTime);
-        XFlush(display);
+        XTestFakeMotionEvent(this->display, -1, x, y, CurrentTime);
+        XTestFakeButtonEvent(this->display, 1, True, CurrentTime);
+        XTestFakeMotionEvent(this->display, -1, x2, y2, CurrentTime);
+        XFlush(this->display);
     }
     else if (data[0] == 'S')
     {
         if (data[1] == 'U')
         {
-            XTestFakeButtonEvent(display, 4, 1, 0);
-            XTestFakeButtonEvent(display, 4, 0, 70);
+            XTestFakeButtonEvent(this->display, 4, 1, 0);
+            XTestFakeButtonEvent(this->display, 4, 0, 70);
         }
         else
         {
-            XTestFakeButtonEvent(display, 5, 1, 0);
-            XTestFakeButtonEvent(display, 5, 0, 70);
+            XTestFakeButtonEvent(this->display, 5, 1, 0);
+            XTestFakeButtonEvent(this->display, 5, 0, 70);
         }
     }
     else if (data[0] == 'K')
     {
         if (data[1] == 49)
         {
-            int keycode = XKeysymToKeycode(display, XStringToKeysym(data + 2));
-            XTestFakeKeyEvent(display, keycode, True, CurrentTime);
-            XTestFakeKeyEvent(display, keycode, False, CurrentTime);
-            XFlush(display);
+            int keycode = XKeysymToKeycode(this->display, XStringToKeysym(data + 2));
+            XTestFakeKeyEvent(this->display, keycode, True, CurrentTime);
+            XTestFakeKeyEvent(this->display, keycode, False, CurrentTime);
+            XFlush(this->display);
         }
         else if (data[1] == 50)
         {
@@ -159,17 +161,16 @@ void XInputs::processInputs(char *data, int clientSD)
                 i++;
             }
             i++;
-            int keycode1 = XKeysymToKeycode(display, XStringToKeysym(buffer));
-            int keycode2 = XKeysymToKeycode(display, XStringToKeysym(data + i));
-            XTestFakeKeyEvent(display, keycode1, True, 0);
-            XTestFakeKeyEvent(display, keycode2, True, 0);
-            XTestFakeKeyEvent(display, keycode2, False, 0);
-            XTestFakeKeyEvent(display, keycode1, False, 0);
-            XFlush(display);
+            int keycode1 = XKeysymToKeycode(this->display, XStringToKeysym(buffer));
+            int keycode2 = XKeysymToKeycode(this->display, XStringToKeysym(data + i));
+            XTestFakeKeyEvent(this->display, keycode1, True, 0);
+            XTestFakeKeyEvent(this->display, keycode2, True, 0);
+            XTestFakeKeyEvent(this->display, keycode2, False, 0);
+            XTestFakeKeyEvent(this->display, keycode1, False, 0);
+            XFlush(this->display);
         }
     }
-    XFlush(display);
-    free(data);
+    XFlush(this->display);
 }
 
 #endif
