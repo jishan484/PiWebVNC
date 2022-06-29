@@ -134,10 +134,6 @@ void VNCServer::start_service(Websocket &ws)
                 int partCounts = 0;
                 XDamageSubtract(this->display, this->damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
-                rect->x = 200;
-                rect->y = 200;
-                rect->width = 100;
-                rect->height = 100;
                 for (int i = 0; i < partCounts; i++)
                 {
                     XShmGetImage(this->display, this->screenInfo.root, image, 0, 0, AllPlanes);
