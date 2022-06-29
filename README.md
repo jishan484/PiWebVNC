@@ -2,8 +2,14 @@
 A simple, highly efficient, web based VNC app for Raspberry pi (all models).
 ###### No external dependency required. Just `compile -> run -> go`.
 ## Installation process
-To compile this app, some aditional packages will be installed in your pi. You can also use pre-compiled binary, please check [Pre compiled Binaries](#pre-compiled-binaries) section.
-#### setup
+To compile this app, some aditional packages will be installed in your pi. You can also use 
+```sh
+git clone https://github.com/jishan484/PiWebVNC.git
+cd PiWebVNC
+sudo sh compile.sh
+```
+### or
+#### setup after downloading Release zip
 ```sh
 git clone https://github.com/jishan484/PiWebVNC.git
 cd PiWebVNC
@@ -11,11 +17,11 @@ sudo apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-d
 ```
 #### Compile and Run
 ```sh
-g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -o PiWebVNC
+g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -o /bin/PiWebVNC
 # for test
-./PiWebVNC
+/bin/PiWebVNC
 ```
-
+Using /bin (linux binary dir) for autostart setup (changed to bin)
 open `http://localhost:8000` in browser<br>
 or<br>
 open `http://--ip-of-raspberry-pi--:8000` from another pc browser E.g. `http://192.168.0.15:8000`
@@ -38,7 +44,7 @@ Description=Remote desktop service (PiWebVNC)
 
 [Service]
 User="$(who|awk '{print $1}')"
-ExecStart=/PiWebVNC
+ExecStart=/bin/PiWebVNC
 Restart=always
 RestartSec=10
 
@@ -75,9 +81,10 @@ max RAM usage PI4 2GB model : `0.7%`
 
 
 ## Pre compiled Binaries
-####    [only available for x86]
+####    [Not available for Any device for platform library dependency]
+Please compile to ommit platform dependency. It will install all required dependencies before compiling the app.
 It is always better to compile it in your PC. To compile this in your PC please check [Installation process](#installation-process) (this will install some dependencies in your Pi)
 You can download pre-compiled app from links below
-  NOT AVAILABLE. PLEASE COMPILE IT USING `compile.sh` SCRIPT.
+  NOT AVAILABLE. PLEASE COMPILE IT USING `sudo sh compile.sh` SCRIPT. [Must have to use sudo]
 
 #### `please note that, this software does not provide any security features. Only use for low risk projects in your local network. A secure version is under development.`
