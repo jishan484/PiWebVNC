@@ -27,8 +27,13 @@ HTTPS or WSS configuration will be available soon [#5_issue](/../../issues/5)
 ### Auto start
 Use this auto-start method to run this app at startup
 ###### Note : You can use different methods also.
+###### Open Nano or VIM
 ```sh
-sudo echo "[Unit]
+sudo nano /etc/systemd/system/PiWebVNC.service
+```
+###### Paste below section there
+```sh
+[Unit]
 Description=Remote desktop service (PiWebVNC)
 
 [Service]
@@ -38,7 +43,7 @@ Restart=always
 RestartSec=10
 
 [Install]
-WantedBy=multi-user.target" > /etc/systemd/system/PiWebVNC.service
+WantedBy=multi-user.target
 ```
 ```sh
 sudo systemctl enable PiWebVNC.service
