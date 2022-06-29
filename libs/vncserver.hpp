@@ -134,10 +134,14 @@ void VNCServer::start_service(Websocket &ws)
                 int partCounts = 0;
                 XDamageSubtract(this->display, this->damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
+                rect->x = 200;
+                rect->y = 200;
+                rect->width = 100;
+                rect->height = 100;
                 for (int i = 0; i < partCounts; i++)
                 {
                     XShmGetImage(this->display, this->screenInfo.root, image, 0, 0, AllPlanes);
-                    int cropx = ((rect[i].x *image->bytes_per_line) + rect[i].y);
+                    int cropx = ((rect[i].y *image->bytes_per_line) + rect[i].x);
                     int frameSize = (rect[i].height * image->bytes_per_line) - cropx;
                     int compressedSize = LZ4_compress_default(image->data + cropx, this->buffer, frameSize, this->bufferSize);
                     std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " 
