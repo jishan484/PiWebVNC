@@ -26,7 +26,8 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/Xdamage.h>
 #include <X11/extensions/XTest.h>
-
+#include <X11/extensions/XShm.h>
+#include <sys/shm.h>
 #include "display.hpp"
 #include "input.hpp"
 
@@ -53,6 +54,8 @@ class VNCServer
         int sleepLoop = (1000000 / FPS)/this->sleepDelay;
         int bufferSize = 1000000;
         char *buffer;
+        XShmSegmentInfo shminfo;
+        XImage *image;
 };
 
 VNCServer::VNCServer()
@@ -76,6 +79,9 @@ VNCServer::VNCServer()
 
 VNCServer::~VNCServer()
 {
+    // free image
+    XDestroyImage(this->image);
+    XShmDetach(this->display, &shminfo);
     free(this->buffer);
     printf("[INFO] Memory released for VNC buffer.\n");
     XDamageDestroy(display, damage);
@@ -93,7 +99,15 @@ void VNCServer::send_first_frame(int sd)
 }
 void VNCServer::start_service(Websocket &ws)
 {
-    register XImage *image;
+    image = XShmCreateImage(display, DefaultVisual(display, DefaultScreen(display)), xdisplay.depth, ZPixmap, NULL, &shminfo, this->screenInfo.width, this->screenInfo.height);
+    shminfo.shmid = shmget(IPC_PRIVATE,
+                           image->bytes_per_line * image->height,
+                           IPC_CREAT | 0777);
+
+    image->data = (char *)shmat(shminfo.shmid, 0, 0);
+    shminfo.shmaddr = image->data;
+    shminfo.readOnly = False;
+    XShmAttach(display, &shminfo);
     const XserverRegion xregion = XFixesCreateRegion(this->display, NULL, 0);
     while(this->isRunning)
     {
@@ -102,8 +116,7 @@ void VNCServer::start_service(Websocket &ws)
         {
             if (this->sendFirstFrame)
             {
-                image = XGetImage(this->display, this->screenInfo.root, 0, 0, this->screenInfo.width
-                    , this->screenInfo.height, AllPlanes, ZPixmap);
+                XShmGetImage(this->display, this->screenInfo.root, image, 0, 0, AllPlanes);
                 int frameSize = ((this->screenInfo.height - 1) * image->bytes_per_line + (this->screenInfo.width - 1));
                 int compressedSize = LZ4_compress_default(image->data, this->buffer, frameSize, this->bufferSize);
                 std::string data = "UPD" + std::to_string(0) + " " + std::to_string(0) + " " 
@@ -111,7 +124,6 @@ void VNCServer::start_service(Websocket &ws)
                     + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                 char *info = (char *)data.c_str();
                 int infoSize = strlen(info);
-                XDestroyImage(image);
                 ws.sendText(this->config, this->clientSD);
                 ws.sendFrame(info, buffer, infoSize, compressedSize, this->clientSD);
                 this->sendFirstFrame = false;
@@ -124,15 +136,14 @@ void VNCServer::start_service(Websocket &ws)
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
                 for (int i = 0; i < partCounts; i++)
                 {
-                    image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
-                    int frameSize = (rect[i].height * image->bytes_per_line);
-                    int compressedSize = LZ4_compress_default(image->data, this->buffer, frameSize, this->bufferSize);
+                    XShmGetImage(this->display, this->screenInfo.root, image, 0, 0, AllPlanes);
+                    int frameSize = (rect[i].height * image->bytes_per_line) - (rect[i].x * rect[i].y);
+                    int compressedSize = LZ4_compress_default(image->data + (rect[i].x * rect[i].y), this->buffer, frameSize, this->bufferSize);
                     std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " 
                         + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " 
                         + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                     char *info = (char *)data.c_str();
                     int infoSize = strlen(info);
-                    if(!XDestroyImage(image)) free(image);
                     ws.sendFrame(info, this->buffer, infoSize, compressedSize);
                 }
                 XFree(rect);
