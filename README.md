@@ -28,7 +28,7 @@ HTTPS or WSS configuration will be available soon [#5_issue](/../../issues/5)
 Use this auto-start method to run this app at startup
 ###### Note : You can use different methods also.
 ```sh
-echo "[Unit]
+sudo echo "[Unit]
 Description=Remote desktop service (PiWebVNC)
 
 [Service]
