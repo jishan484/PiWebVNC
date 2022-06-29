@@ -137,8 +137,9 @@ void VNCServer::start_service(Websocket &ws)
                 for (int i = 0; i < partCounts; i++)
                 {
                     XShmGetImage(this->display, this->screenInfo.root, image, 0, 0, AllPlanes);
-                    int frameSize = (rect[i].height * image->bytes_per_line) - (rect[i].x * rect[i].y);
-                    int compressedSize = LZ4_compress_default(image->data + (rect[i].x * rect[i].y), this->buffer, frameSize, this->bufferSize);
+                    int cropx = ((rect[i].x *image->bytes_per_line) + rect[i].y);
+                    int frameSize = (rect[i].height * image->bytes_per_line) - cropx;
+                    int compressedSize = LZ4_compress_default(image->data + cropx, this->buffer, frameSize, this->bufferSize);
                     std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " 
                         + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " 
                         + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
