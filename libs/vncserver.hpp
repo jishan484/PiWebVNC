@@ -43,7 +43,7 @@ class VNCServer
         void send_first_frame(int sd); // send the first frame to the client
     private:
         void threadSleep();
-        void getSubImage(char *image, int x, int y, int width, int height, char *subImage);
+        void getSubImage(char *image, int x, int y, int width, int height,int bpl, char *subImage);
         Display * display;
         Damage damage;
         ScreenInfo screenInfo;
@@ -139,14 +139,12 @@ void VNCServer::start_service(Websocket &ws)
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
                 for (int i = 0; i < partCounts; i++)
                 {
-                    rect[i].x = 0;
-                    rect[i].y = 53;
-                    rect[i].width = 173;
-                    rect[i].height -= rect[i].y;
                     XShmGetImage(this->display, this->screenInfo.root, image, 0, 0, AllPlanes);
                     int bytes = (image->bytes_per_line / this->screenInfo.width)*rect[i].width;
+                    // bytes = rect[i].width * (xdisplay.depth / 8);
                     int frameSize = (rect[i].height * bytes);
-                    this->getSubImage(image->data, rect[i].x, rect[i].y, rect[i].width, rect[i].height, this->tempBuffer);
+                    this->getSubImage(image->data, rect[i].x, rect[i].y, rect[i].width, rect[i].height,bytes, this->tempBuffer);
+                    std::cout << "x:"<<rect[i].x << " y:" << rect[i].y << " w:" << rect[i].width << " h:" << rect[i].height << std::endl;
                     int compressedSize = LZ4_compress_default(this->tempBuffer, this->buffer, frameSize, this->bufferSize);
                     std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " 
                         + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " 
@@ -176,17 +174,16 @@ void VNCServer::threadSleep()
         usleep(this->sleepDelay);
     }
 }
-void VNCServer::getSubImage(char *imageData, int x, int y, int width, int height, char *subImageData){
+void VNCServer::getSubImage(char *imageData, int x, int y, int width, int height,int bpl, char *subImageData){
     int startPoint = 0;
     if (xdisplay.depth == 24)
         startPoint = (y * this->image->bytes_per_line) + (x << 2);
     else
-        startPoint = (y * this->image->bytes_per_line) + (x);
-    int bytePerLine = (image->bytes_per_line / this->screenInfo.width) * width;
+        startPoint = (y * this->image->bytes_per_line) + (x << 1);
     for (int i = 0; i < height; i++)
     {
-        memcpy(subImageData, imageData + startPoint, bytePerLine);
-        subImageData += bytePerLine;
+        memcpy(subImageData, imageData + startPoint, bpl);
+        subImageData += bpl;
         startPoint += this->image->bytes_per_line;
     }
 }
