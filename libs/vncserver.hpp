@@ -43,6 +43,7 @@ class VNCServer
         void send_first_frame(int sd); // send the first frame to the client
     private:
         void threadSleep();
+        void getSubImage(char *image, int x, int y, int width, int height, char *subImage);
         Display * display;
         Damage damage;
         ScreenInfo screenInfo;
@@ -54,6 +55,7 @@ class VNCServer
         int sleepLoop = (1000000 / FPS)/this->sleepDelay;
         int bufferSize = 1000000;
         char *buffer;
+        char *tempBuffer;
         XShmSegmentInfo shminfo;
         XImage *image;
 };
@@ -70,6 +72,7 @@ VNCServer::VNCServer()
 
     this->bufferSize = (this->screenInfo.height * this->xdisplay.getBitPerLine()) + (2 * this->screenInfo.width);
     this->buffer = (char *)malloc(this->bufferSize * sizeof(char));
+    this->tempBuffer = (char *)malloc(this->bufferSize * sizeof(char));
     if (this->buffer == NULL)
     {
         printf("[ERROR] Memory not allocated for VNC buffer.\n");
@@ -83,6 +86,7 @@ VNCServer::~VNCServer()
     XDestroyImage(this->image);
     XShmDetach(this->display, &shminfo);
     free(this->buffer);
+    free(this->tempBuffer);
     printf("[INFO] Memory released for VNC buffer.\n");
     XDamageDestroy(display, damage);
     this->xdisplay.close();
@@ -103,7 +107,6 @@ void VNCServer::start_service(Websocket &ws)
     shminfo.shmid = shmget(IPC_PRIVATE,
                            image->bytes_per_line * image->height,
                            IPC_CREAT | 0777);
-
     image->data = (char *)shmat(shminfo.shmid, 0, 0);
     shminfo.shmaddr = image->data;
     shminfo.readOnly = False;
@@ -136,13 +139,18 @@ void VNCServer::start_service(Websocket &ws)
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
                 for (int i = 0; i < partCounts; i++)
                 {
+                    // rect[i].x = 0;
+                    // rect[i].y = 0;
+                    // rect[i].width -= rect[i].x;
+                    // rect[i].height -= rect[i].y;
                     XShmGetImage(this->display, this->screenInfo.root, image, 0, 0, AllPlanes);
-                    int cropx = ((rect[i].y *image->bytes_per_line) + rect[i].x);
-                    int frameSize = (rect[i].height * image->bytes_per_line) - cropx;
-                    int compressedSize = LZ4_compress_default(image->data + cropx, this->buffer, frameSize, this->bufferSize);
+                    int bytes = (image->bytes_per_line / this->screenInfo.width)*rect[i].width;
+                    int frameSize = (rect[i].height * bytes);
+                    this->getSubImage(image->data, rect[i].x, rect[i].y, rect[i].width, rect[i].height, this->tempBuffer);
+                    int compressedSize = LZ4_compress_default(this->tempBuffer, this->buffer, frameSize, this->bufferSize);
                     std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " 
                         + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " 
-                        + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
+                        + std::to_string(bytes) + " " + std::to_string(compressedSize) + " \n";
                     char *info = (char *)data.c_str();
                     int infoSize = strlen(info);
                     ws.sendFrame(info, this->buffer, infoSize, compressedSize);
@@ -166,6 +174,17 @@ void VNCServer::threadSleep()
     {
         this->inputs->dispatchEvents();
         usleep(this->sleepDelay);
+    }
+}
+
+void VNCServer::getSubImage(char *imageData, int x, int y, int width, int height, char *subImageData){
+    int startPoint = (y * this->image->bytes_per_line) + (x);
+    int bytePerLine = (image->bytes_per_line / this->screenInfo.width) * width;
+    for (int i = 0; i < height; i++)
+    {
+        strncpy(subImageData, imageData + startPoint, bytePerLine);
+        subImageData += bytePerLine;
+        startPoint += this->image->bytes_per_line;
     }
 }
 
