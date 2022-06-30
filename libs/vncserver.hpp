@@ -176,16 +176,17 @@ void VNCServer::threadSleep()
         usleep(this->sleepDelay);
     }
 }
-
 void VNCServer::getSubImage(char *imageData, int x, int y, int width, int height, char *subImageData){
     int startPoint = (y * this->image->bytes_per_line) + (x);
     int bytePerLine = (image->bytes_per_line / this->screenInfo.width) * width;
     for (int i = 0; i < height; i++)
     {
-        strncpy(subImageData, imageData + startPoint, bytePerLine);
+        memcpy(subImageData, imageData + startPoint, bytePerLine);
         subImageData += bytePerLine;
         startPoint += this->image->bytes_per_line;
     }
 }
+
+
 
 #endif
