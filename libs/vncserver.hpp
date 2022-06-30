@@ -139,10 +139,10 @@ void VNCServer::start_service(Websocket &ws)
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
                 for (int i = 0; i < partCounts; i++)
                 {
-                    // rect[i].x = 0;
-                    // rect[i].y = 0;
-                    // rect[i].width -= rect[i].x;
-                    // rect[i].height -= rect[i].y;
+                    rect[i].x = 0;
+                    rect[i].y = 53;
+                    rect[i].width = 173;
+                    rect[i].height -= rect[i].y;
                     XShmGetImage(this->display, this->screenInfo.root, image, 0, 0, AllPlanes);
                     int bytes = (image->bytes_per_line / this->screenInfo.width)*rect[i].width;
                     int frameSize = (rect[i].height * bytes);
@@ -177,7 +177,11 @@ void VNCServer::threadSleep()
     }
 }
 void VNCServer::getSubImage(char *imageData, int x, int y, int width, int height, char *subImageData){
-    int startPoint = (y * this->image->bytes_per_line) + (x);
+    int startPoint = 0;
+    if (xdisplay.depth == 24)
+        startPoint = (y * this->image->bytes_per_line) + (x << 2);
+    else
+        startPoint = (y * this->image->bytes_per_line) + (x);
     int bytePerLine = (image->bytes_per_line / this->screenInfo.width) * width;
     for (int i = 0; i < height; i++)
     {
