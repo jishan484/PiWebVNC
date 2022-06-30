@@ -144,7 +144,6 @@ void VNCServer::start_service(Websocket &ws)
                     // bytes = rect[i].width * (xdisplay.depth / 8);
                     int frameSize = (rect[i].height * bytes);
                     this->getSubImage(image->data, rect[i].x, rect[i].y, rect[i].width, rect[i].height,bytes, this->tempBuffer);
-                    std::cout << "x:"<<rect[i].x << " y:" << rect[i].y << " w:" << rect[i].width << " h:" << rect[i].height << std::endl;
                     int compressedSize = LZ4_compress_default(this->tempBuffer, this->buffer, frameSize, this->bufferSize);
                     std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " 
                         + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " 
