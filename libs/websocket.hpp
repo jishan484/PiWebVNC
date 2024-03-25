@@ -40,12 +40,13 @@ class Websocket
 
 public:
     static int clients;
-    std::thread begin(int port = PORT);
+    void begin(int port = PORT);
     void sendFrame(char *img, long size, int sid = -1);
     void sendFrame(char *img, char *options, long size1, long size2, int sid = -1);
     void sendText(char *text, int sid = -1);
     void onConnect(void (*ptr)(int sid));
     void onMessage(void (*ptr)(void *data, int sid));
+    void connections();
     int ready = 0;
     bool stop = false;
 
@@ -53,7 +54,6 @@ private:
     int socketPort = 8080;
     int max_clients = (MAX_CLIENTS < 25) ? MAX_CLIENTS : 25;
     int server_fd;
-    void connections();
     void handshake(unsigned char *d, int sd, int sid);
     void sendRaw(int startByte, char *data, long imgSize, int sid);
     void sendRaw(int startByte, char *data, char *data2, long data1Size, long data2Size, int sid);
@@ -72,18 +72,21 @@ void Websocket::onMessage(void (*ptr)(void *data, int sid))
 {
     callBackMsg = ptr;
 }
-std::thread Websocket::begin(int port)
+void Websocket::begin(int port)
 {
     parseHttpPage();
     this->socketPort = port;
-    std::thread t(&Websocket::connections, this);
-    return t;
+    // void t(&Websocket::connections, this);
+    // return t;
 }
 
 void Websocket::connections()
 {
     int new_socket, valread = 0;
     struct sockaddr_in address;
+    struct timeval timeout;
+    timeout.tv_sec = 3;
+    timeout.tv_usec = 0;
     int opt = 1, max_sd = 0;
     int addrlen = sizeof(address);
     unsigned char buffer[1024] = {0};
@@ -102,6 +105,12 @@ void Websocket::connections()
         perror("setsockopt");
         exit(EXIT_FAILURE);
     }
+    // timeout
+    if (setsockopt(this->server_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout,sizeof timeout) < 0)
+        perror("setsockopt failed\n");
+    if (setsockopt(this->server_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout,sizeof timeout) < 0)
+        perror("setsockopt failed\n");
+    //
     if (bind(this->server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
         perror("bind failed");
