@@ -28,7 +28,6 @@
 #include <X11/extensions/Xfixes.h>
 #include <string>
 #include "websocket.hpp"
-#include "xvfb_support.hpp"
 
 struct ScreenInfo
 {
@@ -56,7 +55,7 @@ private:
 
 XDisplay::XDisplay()
 {
-    //get result of command "echo $DISPLAY"
+    // get result of command "echo $DISPLAY"
     try
     {
         std::string envDisplay = std::string(getenv("DISPLAY"));
@@ -80,11 +79,8 @@ XDisplay::XDisplay()
     {
         #if ERROR || DEBUG
             std::cout << "[ERROR][EXIT APP] Could not open display. Please pass --display [id].\n\t eg: --display 18." << std::endl;
-            std::cout << " or " << std::endl;
-            installXvfb();
-            initXvfb();
-#endif
-                exit(1);
+        #endif
+        exit(1);
     }
     #if ERROR || DEBUG
         std::cout << "[LOG] Display opened successfully." << std::endl;
@@ -170,12 +166,3 @@ void XDisplay::close()
      * otherwise it will loop though all displays and find the one that is running
      * loop limit is set to 10 change from config file (config.cpp)
      */
-
-    /*
-    * if display is not set then it will try to start Xvfb
-    * and then start the display manager
-    * it will try to start the following desktop environments
-    * gnome, mate, cinnamon, pantheon, lxqt, kde, xfce, lxsession, enlightenment
-    * if any of the above desktop environment is installed then it will start that
-    * otherwise it will exit the app
-    */
