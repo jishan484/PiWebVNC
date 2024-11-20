@@ -21,11 +21,13 @@
 #include <X11/Xlib.h>
 #include <iostream>
 #include "appConfigs.hpp"
+#include <climits>
 
 struct RectLookup
 {
     XRectangle rect;
     int frequency = -1;
+    short encounter = 0;
 };
 
 struct LOOKUP_MANAGER{
@@ -36,15 +38,19 @@ struct LOOKUP_MANAGER{
 
     bool match(XRectangle rect){
         bool isMatched = false;
-        int minFreq = -1;
+        int minFreq = INT_MAX;
+        this->min_freq_index = -1;
         for (int i = 0; i < MAX_LOOKUP_COUNTS; i++)
         {
+            if(LOOKUPS[i].frequency == -1) break;
+            LOOKUPS[i].encounter++;
             if (rect.x == LOOKUPS[i].rect.x && rect.y == LOOKUPS[i].rect.y && rect.width == LOOKUPS[i].rect.width && rect.height == LOOKUPS[i].rect.height)
             {
                 isMatched = true;
                 this->lastMatchedFrequency = LOOKUPS[i].frequency;
+                LOOKUPS[i].frequency++;
             }
-            if(LOOKUPS[i].frequency < minFreq){
+            if(LOOKUPS[i].frequency < minFreq && LOOKUPS[i].encounter > 0){
                 minFreq = LOOKUPS[i].frequency;
                 this->min_freq_index = i;
             }
@@ -59,8 +65,9 @@ struct LOOKUP_MANAGER{
         if(this->index < MAX_LOOKUP_COUNTS) {
             LOOKUPS[this->index++] = lookup;
         } else {
-            printf("replaced");
-            LOOKUPS[this->min_freq_index] = lookup;
+            if(this->min_freq_index >= 0 && this->min_freq_index<MAX_LOOKUP_COUNTS){
+                printf("replaced\n");
+                LOOKUPS[this->min_freq_index] = lookup;            }
         }
     }
 } myLOOKUP_MANAGER;
