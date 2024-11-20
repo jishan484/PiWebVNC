@@ -26,16 +26,11 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/Xdamage.h>
 #include <X11/extensions/XTest.h>
-
 #include <jpeglib.h>
 
 #include "display.hpp"
 #include "input.hpp"
-
-struct MyRect {
-    XRectangle rect;
-    int frequency;
-} lookups[5];
+#include "xOptimizer.hpp"
 
 class VNCServer
 {
@@ -50,7 +45,6 @@ class VNCServer
     private:
         void threadSleep();
         unsigned char *compress_image_to_jpeg(char *input_image_data, int width, int height, int *out_size, int quality);
-        bool checkOptimization(XRectangle rect);
         Display * display;
         Damage damage;
         ScreenInfo screenInfo;
@@ -137,8 +131,8 @@ void VNCServer::start_service(Websocket &ws)
                 {
                     image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
                     int frameSize = (rect[i].height * image->bytes_per_line);
-                    
-                    if(checkOptimization(rect[i]))
+                    int optimization = optimizationManager.checkOptimization(rect[i]);
+                    if(optimization < 100)
                         {
                             // send JPEG compressed frame
                             int compressedSize = 0;
@@ -157,7 +151,7 @@ void VNCServer::start_service(Websocket &ws)
                                     this->buffer[cordb++] = b; // B
                                 }
                             }
-                            char *jpeg_data = (char *)this->compress_image_to_jpeg(this->buffer, rect[i].width, rect[i].height, &compressedSize, 20);
+                            char *jpeg_data = (char *)this->compress_image_to_jpeg(this->buffer, rect[i].width, rect[i].height, &compressedSize, optimization);
                             std::string data = "VPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                             char *info = (char *)data.c_str();
                             int infoSize = strlen(info);
@@ -247,8 +241,6 @@ unsigned char *VNCServer::compress_image_to_jpeg(char *input_image_data, int wid
     return jpeg_data;
 }
 
-bool VNCServer::checkOptimization(XRectangle rect){
-    return true;
-}
+
 
 #endif
