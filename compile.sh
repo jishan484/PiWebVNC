@@ -6,7 +6,7 @@ if [ -z "$SUDO_USER" ]; then
   exit
 fi
 
-apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-dev g++ libjpeg-turbo8-dev
+apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-dev g++ libjpeg-dev
 
 g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -ljpeg -o /bin/PiWebVNC
 

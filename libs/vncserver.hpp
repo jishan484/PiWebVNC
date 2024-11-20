@@ -33,11 +33,9 @@
 #include "input.hpp"
 
 struct MyRect {
-    int x = 0;
-    int y = 0;
-    int width = 0;
-    int height = 0;
-} checkRect;
+    XRectangle rect;
+    int frequency;
+} lookups[5];
 
 class VNCServer
 {
@@ -52,6 +50,7 @@ class VNCServer
     private:
         void threadSleep();
         unsigned char *compress_image_to_jpeg(char *input_image_data, int width, int height, int *out_size, int quality);
+        bool checkOptimization(XRectangle rect);
         Display * display;
         Damage damage;
         ScreenInfo screenInfo;
@@ -134,48 +133,41 @@ void VNCServer::start_service(Websocket &ws)
                 XDamageSubtract(this->display, this->damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
                 //check if same frame is getting changed
-                bool isSameFrame = 0;
                 for (int i = 0; i < partCounts; i++)
                 {
                     image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
                     int frameSize = (rect[i].height * image->bytes_per_line);
-                    if(checkRect.x == rect[i].x && checkRect.y == rect[i].y
-                        && checkRect.height == rect[i].height && checkRect.width == rect[i].width) isSameFrame = 1;
-                    if(doCompress && isSameFrame) {
-                        // send JPEG compressed frame
-                        int compressedSize = 0;
-                        int cord = 0,cordb = 0;
-                        for (int y = 0; y < image->height; y++)
+                    
+                    if(checkOptimization(rect[i]))
                         {
-                            for (int x = 0; x < image->width; x++)
+                            // send JPEG compressed frame
+                            int compressedSize = 0;
+                            int cord = 0, cordb = 0;
+                            for (int y = 0; y < image->height; y++)
                             {
-                                unsigned long pixel = XGetPixel(image, x, y);
-                                unsigned char r = (pixel) >> 16;
-                                unsigned char g = (pixel) >> 8;
-                                unsigned char b = pixel;
+                                for (int x = 0; x < image->width; x++)
+                                {
+                                    unsigned long pixel = XGetPixel(image, x, y);
+                                    unsigned char r = (pixel) >> 16;
+                                    unsigned char g = (pixel) >> 8;
+                                    unsigned char b = pixel;
 
-                                this->buffer[cordb++] = r; // R
-                                this->buffer[cordb++] = g; // G
-                                this->buffer[cordb++] = b; // B
+                                    this->buffer[cordb++] = r; // R
+                                    this->buffer[cordb++] = g; // G
+                                    this->buffer[cordb++] = b; // B
+                                }
                             }
+                            char *jpeg_data = (char *)this->compress_image_to_jpeg(this->buffer, rect[i].width, rect[i].height, &compressedSize, 20);
+                            std::string data = "VPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
+                            char *info = (char *)data.c_str();
+                            int infoSize = strlen(info);
+                            if (!XDestroyImage(image))
+                                free(image);
+                            ws.sendFrame(info, jpeg_data, infoSize, compressedSize);
+                            delete jpeg_data;
                         }
-                        char * jpeg_data = (char *)this->compress_image_to_jpeg(this->buffer,rect[i].width,rect[i].height,&compressedSize,20);
-                        std::string data = "VPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
-                        char *info = (char *)data.c_str();
-                        int infoSize = strlen(info);
-                        if (!XDestroyImage(image))
-                            free(image);
-                        ws.sendFrame(info, jpeg_data, infoSize, compressedSize);
-                        // FILE *out_file = fopen("output.jpg", "wb");
-                        // if (out_file)
-                        // {
-                        //     fwrite(jpeg_data, 1, compressedSize, out_file);
-                        //     fclose(out_file);
-                        //     printf("JPEG saved to output.jpg\n");
-                        // }
-                        delete jpeg_data;
-
-                    } else {
+                    else
+                    {
                         int compressedSize = LZ4_compress_default(image->data, this->buffer, frameSize, this->bufferSize);
                         std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
                         char *info = (char *)data.c_str();
@@ -183,14 +175,8 @@ void VNCServer::start_service(Websocket &ws)
                         if (!XDestroyImage(image))
                             free(image);
                         ws.sendFrame(info, this->buffer, infoSize, compressedSize);
-                        checkRect.x = rect[i].x;
-                        checkRect.y = rect[i].y;
-                        checkRect.height = rect[i].height;
-                        checkRect.width = rect[i].width;
                     }
-                    
                 }
-                if(isSameFrame) doCompress = 1; else doCompress = 0;
                 XFree(rect);
             }
         }
@@ -259,6 +245,10 @@ unsigned char *VNCServer::compress_image_to_jpeg(char *input_image_data, int wid
 
     // Return the compressed image data (JPEG in memory)
     return jpeg_data;
+}
+
+bool VNCServer::checkOptimization(XRectangle rect){
+    return true;
 }
 
 #endif
