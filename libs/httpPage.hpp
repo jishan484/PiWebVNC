@@ -9668,9 +9668,9 @@ void parseHttpPage()
         
         const reader = new FileReader();
         reader.onloadend = function() {
-            const img = new Image();
+            const img = document.createElement('img');
             img.onload = function() {
-                ctx.drawImage(img, 0, 0, 1, 1);
+                ctx.drawImage(img, relative_x, relative_y,relative_width,relative_height);
             };
             img.src = reader.result; 
         };
@@ -9783,7 +9783,6 @@ void parseHttpPage()
             }
             canvas.onwheel = function(e){
                 e.preventDefault();
-                console.log(e.x , e.y , e.deltaX , e.deltaY , e.offsetX , e.offsetY );
                 mouseScrolled+= e.deltaY;
                 if(mouseScrolled > 50){
                     mouseScrolled = 0;
@@ -9892,7 +9891,7 @@ void parseHttpPage()
         var relative_width = canvas.width * canvas.height / screenContainer.offsetWidth;
         if (relative_width > screenContainer.offsetWidth) canvas.style.width = (screenContainer.offsetWidth) + "px";
         else canvas.style.height = (screenContainer.offsetHeight) + "px";
-        ctx.scale(config.width, config.height);
+        //ctx.scale(config.width, config.height);
         ctx.fillStyle = "rgb(255,255,255)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
