@@ -9649,6 +9649,42 @@ void parseHttpPage()
             }
         }
     }
+    function updateCanvas(data){
+        var relative_x = 0;
+        var relative_y = 0;
+        var relative_width = 0;
+        var relative_height = 0;
+        var bitsPerLine = 0;
+        var transferedDataSize = 0;
+        var index = 3;
+
+        while (data[index] != 32) { relative_x = relative_x * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_y = relative_y * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_width = relative_width * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_height = relative_height * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { bitsPerLine = bitsPerLine * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { transferedDataSize = transferedDataSize * 10 + (data[index] - 48); index++; } index++;
+
+        
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            const img = new Image();
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0, 1, 1);
+            };
+            img.src = reader.result; 
+        };
+        reader.readAsDataURL(new Blob([serverPixelData], { type: 'image/jpeg' }));
+
+        
+        //print last frame size
+        let dataSize = Math.round((transferedDataSize / 1024) * 100) / 100;
+        totalDataSize += (dataSize / 1024);
+        lastFrameSize.innerText = relative_width + "x" + relative_height;
+        lastTransferedData.innerHTML = "Last transferred " + dataSize + "KB";
+        totalDataTransfered.innerHTML = "Total transferred " + totalDataSize.toFixed(2) + "MB";
+        totalDataTransfered.style.backgroundColor="#92ff92cf";
+    }
     function drawCanvas(data) {
         var relative_x = 0;
         var relative_y = 0;
@@ -9684,6 +9720,7 @@ void parseHttpPage()
         lastFrameSize.innerText = relative_width + "x" + relative_height;
         lastTransferedData.innerHTML = "Last transferred " + dataSize + "KB";
         totalDataTransfered.innerHTML = "Total transferred " + totalDataSize.toFixed(2) + "MB";
+        totalDataTransfered.style.backgroundColor="white";
     }
 
     function connect() {
@@ -9807,9 +9844,14 @@ void parseHttpPage()
                             header[i] = resp[i];
                             i++;
                         }
-                        let pixelData = resp.slice(i + 1);
-                        var uncompressedSize = LZ4.decodeBlock(pixelData, serverPixelData)
-                        drawCanvas(header);
+                        
+                        if(resp[0] == 85){
+                            var uncompressedSize = LZ4.decodeBlock(resp.slice(i + 1), serverPixelData)
+                            drawCanvas(header);
+                        } else if(resp[0] == 86) {
+                            serverPixelData = resp.slice(i+1);
+                            updateCanvas(header);
+                        }
                     });
                 }
                 else {
