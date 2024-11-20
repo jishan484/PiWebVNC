@@ -9649,7 +9649,7 @@ void parseHttpPage()
             }
         }
     }
-    function updateCanvas(data){
+    function updateCanvas(data, serverJPEGData){
         var relative_x = 0;
         var relative_y = 0;
         var relative_width = 0;
@@ -9666,15 +9666,15 @@ void parseHttpPage()
         while (data[index] != 32) { transferedDataSize = transferedDataSize * 10 + (data[index] - 48); index++; } index++;
 
         
-        const reader = new FileReader();
+        let reader = new FileReader();
         reader.onloadend = function() {
-            const img = document.createElement('img');
+            let img = document.createElement('img');
             img.onload = function() {
                 ctx.drawImage(img, relative_x, relative_y,relative_width,relative_height);
             };
-            img.src = reader.result; 
+            img.src = reader.result;
         };
-        reader.readAsDataURL(new Blob([serverPixelData], { type: 'image/jpeg' }));
+        reader.readAsDataURL(new Blob([serverJPEGData], { type: 'image/jpeg' }));
 
         
         //print last frame size
@@ -9845,11 +9845,11 @@ void parseHttpPage()
                         }
                         
                         if(resp[0] == 85){
-                            var uncompressedSize = LZ4.decodeBlock(resp.slice(i + 1), serverPixelData)
+                            let pixelData = resp.slice(i + 1);
+                            var uncompressedSize = LZ4.decodeBlock(pixelData, serverPixelData)                            
                             drawCanvas(header);
                         } else if(resp[0] == 86) {
-                            serverPixelData = resp.slice(i+1);
-                            updateCanvas(header);
+                            updateCanvas(header, resp.slice(i + 1));
                         }
                     });
                 }
