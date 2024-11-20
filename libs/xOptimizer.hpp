@@ -19,6 +19,7 @@
 #define XRECT_HPP
 
 #include <X11/Xlib.h>
+#include <iostream>
 #include "appConfigs.hpp"
 
 struct RectLookup
@@ -58,6 +59,7 @@ struct LOOKUP_MANAGER{
         if(this->index < MAX_LOOKUP_COUNTS) {
             LOOKUPS[this->index++] = lookup;
         } else {
+            printf("replaced");
             LOOKUPS[this->min_freq_index] = lookup;
         }
     }
