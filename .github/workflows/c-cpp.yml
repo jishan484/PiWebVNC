@@ -14,8 +14,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y \
+        g++ \
+        libx11-dev \
+        libxdamage-dev \
+        libxfixes-dev \
+        libxtst-dev \
+        liblz4-dev
     - name: make
       run: make
     - name: make check
