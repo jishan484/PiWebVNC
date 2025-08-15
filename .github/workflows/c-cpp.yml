@@ -15,13 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y \
-        g++ \
-        libx11-dev \
-        libxdamage-dev \
-        libxfixes-dev \
-        libxtst-dev \
-        liblz4-dev
+      run: sudo apt-get update && sudo apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-dev g++
     - name: make
       run: make
     - name: make check
