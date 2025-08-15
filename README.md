@@ -1,6 +1,5 @@
-![logos](https://user-images.githubusercontent.com/49402826/176439822-57f3a7ad-e21b-4a8f-a25a-b8e7a2c084f5.png)
-
-
+| ![logos](https://user-images.githubusercontent.com/49402826/176439822-57f3a7ad-e21b-4a8f-a25a-b8e7a2c084f5.png) | [![C/C++ CI](https://github.com/jishan484/PiWebVNC/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/jishan484/PiWebVNC/actions/workflows/c-cpp.yml) |
+|-------------|-----------|
 # PiWebVNC
 A simple, highly efficient, web based VNC app for Raspberry pi (all models).
 ###### No external dependency required. Just `compile -> run -> go`.
@@ -24,10 +23,15 @@ g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -o /bin/PiWebVNC
 # for test
 /bin/PiWebVNC
 ```
-Using /bin (linux binary dir) for autostart setup (changed to bin)
+##### output
 open `http://localhost:8000` in browser<br>
 or<br>
 open `http://--ip-of-raspberry-pi--:8000` from another pc browser E.g. `http://192.168.0.15:8000`
+
+#### Compile static binary
+```sh
+g++ -static PIwebVNC.cpp -L/usr/lib/x86_64-linux-gnu -lX11 -lXdamage -lXfixes -lXtst -lXext -lxcb -lXau -lXdmcp -llz4 -o PiWebVNC
+```
 
 #### Configure
 Open libs/appConfigs.hpp to configure this app, like PORT , MAX clients etc.
