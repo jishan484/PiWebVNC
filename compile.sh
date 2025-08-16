@@ -9,6 +9,11 @@ fi
 apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-dev g++
 
 g++ PIwebVNC.cpp -lX11 -lXdamage -lXfixes -pthread -lXtst -llz4 -o /bin/PiWebVNC
+g++ -static PIwebVNC.cpp -lX11 -lXdamage -lXfixes -lXtst -llz4 -pthread -o ../pvc
+g++ -static PIwebVNC.cpp \
+  -L/usr/lib/x86_64-linux-gnu \
+  -lX11 -lXdamage -lXfixes -lXtst -lXext -lxcb -lXau -lXdmcp -lXrender
+
 
 echo "[INFO] Compile Successful."
 

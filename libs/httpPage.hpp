@@ -9641,12 +9641,13 @@ void parseHttpPage()
         var text = e.clipboardData.getData('text/plain') || window.clipboardData.getData('Text');
         //console.log(text);
         if (webSocket != null && webSocket.readyState == 1) {
+            webSocket.send("P" + text);
             //update as soon as possible [make it server side]
-            for (var i = 0; i < text.length; i++) {
-                let key = getXkeyName(text[i]);
-                webSocket.send("K1" + key + "\0");
-                await sleep(80);
-            }
+            // for (var i = 0; i < text.length; i++) {
+            //     let key = getXkeyName(text[i]);
+            //     webSocket.send("K1" + key + "\0");
+            //     await sleep(80);
+            // }
         }
     }
     function drawCanvas(data) {
@@ -9692,7 +9693,7 @@ void parseHttpPage()
             return;
         }
         statusdiv.innerText = "connecting...";
-        let ws = new WebSocket("ws://" + location.host);
+        let ws = new WebSocket(`${location.protocol == 'https:' ? 'wss' : 'ws'}://` + location.host);
         webSocket = ws;
         ws.onerror = function (evt) {
             //console.log("WebSocket Error: ", e);

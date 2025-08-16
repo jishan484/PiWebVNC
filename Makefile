@@ -23,3 +23,7 @@ distcheck: all
 
 clean:
 	rm -f $(OUT)
+
+install: 
+	sudo apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-dev g++
+
