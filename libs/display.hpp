@@ -29,6 +29,10 @@
 #include <string>
 #include "websocket.hpp"
 
+
+// forward declare dix_main from libXvfb.a
+extern "C" int dix_main(int argc, char *argv[], char *envp[]);
+
 struct ScreenInfo
 {
     int width;
@@ -47,10 +51,12 @@ public:
     ScreenInfo getScreenInfo();
     std::string getCursorName();
     int getBitPerLine();
+    void startXvfb();
 
 private:
     Display *display = 0;
     int bitPerLine = 0;
+    std::thread xvfbThread;
 };
 
 XDisplay::XDisplay()
@@ -78,14 +84,45 @@ XDisplay::XDisplay()
     if (this->display == 0)
     {
         #if ERROR || DEBUG
-            std::cout << "[ERROR][EXIT APP] Could not open display. Please pass --display [id].\n\t eg: --display 18." << std::endl;
+            std::cout << "[ERROR][EXIT APP] Could not open display. The built-in X-server will be used !" << std::endl;
         #endif
-        exit(1);
+        startXvfb();
+
+        // retry until Xvfb is ready
+        for (int i = 0; i < 50 && this->display == nullptr; i++)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            this->display = XOpenDisplay(":0"); // assume :0
+        }
+
+        if (this->display == nullptr)
+        {
+            std::cerr << "[ERROR] Could not start built-in X-server, exiting app." << std::endl;
+            exit(1);
+        }
     }
     #if ERROR || DEBUG
         std::cout << "[LOG] Display opened successfully." << std::endl;
     #endif
 }
+
+void XDisplay::startXvfb()
+{
+    xvfbThread = std::thread([]() {
+        char *argv[] = {
+            (char *)"Xvfb",
+            (char *)":0",
+            (char *)"-screen",
+            (char *)"0",
+            (char *)"1080x720x24",
+            nullptr};
+        int argc = 5;
+        extern char **environ;
+        dix_main(argc, argv, environ); // blocks until server exit
+    });
+    xvfbThread.detach();
+}
+
 XDisplay::~XDisplay()
 {
     // free display

@@ -24,6 +24,9 @@ distcheck: all
 clean:
 	rm -f $(OUT)
 
-install: 
+vfb:
+	g++ PIwebVNC.cpp -Wl,--allow-multiple-definition lib_Xvfb_x86.a -L/usr/lib/x86_64-linux-gnu -Wl,-Bstatic -lX11 -lXdamage -lXfixes -lXtst -lXext -lxcb -lXau -lXdmcp -lXrender -llz4 -pthread -lXau -lcrypto -lpixman-1 -lpng16 -lfreetype -Wl,-Bdynamic -lXfont2 -o PiWebVNCx86
+
+install:
 	sudo apt install -y libx11-dev libxdamage-dev libxfixes-dev libxtst-dev liblz4-dev g++
 
