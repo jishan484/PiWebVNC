@@ -24,7 +24,6 @@
 #include "libs/input.hpp"
 #include "libs/vncserver.hpp"
 #include "libs/appConfigs.hpp"
-#include "libs/clipboard.hpp"
 
 using namespace std;
 
@@ -68,8 +67,6 @@ int main(int argc, char *argv[])
     Display *display = vncServer.xdisplay.getDisplay();
     Websocket ws;
     XInputs input(display);
-    Clipboard clipboard(display);
-    input.clipboard = &clipboard;
     vncServer.inputs = &input;
     wss = &ws;
     xinputs = &input;

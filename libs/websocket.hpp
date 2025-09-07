@@ -196,7 +196,7 @@ void Websocket::connections()
                         {
                             if (callBackMsg != NULL)
                             {
-                                char inputData[1024]={0};
+                                char inputData[200]={0};
                                 decode(buffer , inputData);
                                 callBackMsg(inputData, i);
                             }
