@@ -26,29 +26,34 @@ if [ ! -f "$STATE_FILE" ]; then
         cat > "$PANEL_FILE" <<'EOF'
 # Customized panel config, replace if needed
 
+
 Global {
   edge=bottom
   align=left
   margin=0
   widthtype=percent
   width=100
-  height=26
-  transparent=0
-  tintcolor=#000000
-  alpha=0
+  height=36
+  transparent=1
+  tintcolor=#3586c7
+  alpha=174
   setdocktype=1
   setpartialstrut=1
   autohide=0
   heightwhenhidden=0
   usefontcolor=1
-  fontcolor=#ffffff
-  background=1
+  fontcolor=#2ec27e
+  background=0
   backgroundfile=/usr/share/lxpanel/images/background.png
+  iconsize=27
+  monitor=-1
+  usefontsize=1
+  fontsize=11
 }
 Plugin {
   type=space
   Config {
-    Size=2
+    Size=7
   }
 }
 Plugin {
@@ -71,40 +76,36 @@ Plugin {
   }
 }
 Plugin {
+  type=space
+  Config {
+    Size=30
+  }
+}
+Plugin {
   type=launchbar
   Config {
     Button {
       id=pcmanfm.desktop
     }
     Button {
-      id=lxde-x-www-browser.desktop
+      id=lxterminal.desktop
+    }
+    Button {
+      id=htop.desktop
     }
   }
 }
 Plugin {
   type=space
   Config {
-    Size=4
-  }
-}
-Plugin {
-  type=wincmd
-  Config {
-    Button1=iconify
-    Button2=shade
-  }
-}
-Plugin {
-  type=space
-  Config {
-    Size=83
+    Size=30
   }
 }
 Plugin {
   type=taskbar
   expand=1
   Config {
-    tooltips=1
+    tooltips=-1
     IconsOnly=0
     AcceptSkipPager=1
     ShowIconified=1
@@ -114,7 +115,8 @@ Plugin {
     UseUrgencyHint=1
     FlatButton=0
     MaxTaskWidth=150
-    spacing=1
+    spacing=4
+    DisableUpscale=0
   }
 }
 Plugin {
@@ -146,6 +148,12 @@ Plugin {
     Button {
       id=lxde-logout.desktop
     }
+  }
+}
+Plugin {
+  type=space
+  Config {
+    Size=8
   }
 }
 EOF
