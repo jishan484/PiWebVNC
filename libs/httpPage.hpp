@@ -9649,6 +9649,42 @@ void parseHttpPage()
             }
         }
     }
+    function updateCanvas(data, serverJPEGData){
+        var relative_x = 0;
+        var relative_y = 0;
+        var relative_width = 0;
+        var relative_height = 0;
+        var bitsPerLine = 0;
+        var transferedDataSize = 0;
+        var index = 3;
+
+        while (data[index] != 32) { relative_x = relative_x * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_y = relative_y * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_width = relative_width * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { relative_height = relative_height * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { bitsPerLine = bitsPerLine * 10 + (data[index] - 48); index++; } index++;
+        while (data[index] != 32) { transferedDataSize = transferedDataSize * 10 + (data[index] - 48); index++; } index++;
+
+        
+        let reader = new FileReader();
+        reader.onloadend = function() {
+            let img = document.createElement('img');
+            img.onload = function() {
+                ctx.drawImage(img, relative_x, relative_y,relative_width,relative_height);
+            };
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(new Blob([serverJPEGData], { type: 'image/jpeg' }));
+
+        
+        //print last frame size
+        let dataSize = Math.round((transferedDataSize / 1024) * 100) / 100;
+        totalDataSize += (dataSize / 1024);
+        lastFrameSize.innerText = relative_width + "x" + relative_height;
+        lastTransferedData.innerHTML = "Last transferred " + dataSize + "KB";
+        totalDataTransfered.innerHTML = "Total transferred " + totalDataSize.toFixed(2) + "MB";
+        totalDataTransfered.style.backgroundColor="#92ff92cf";
+    }
     function drawCanvas(data) {
         var relative_x = 0;
         var relative_y = 0;
@@ -9684,6 +9720,7 @@ void parseHttpPage()
         lastFrameSize.innerText = relative_width + "x" + relative_height;
         lastTransferedData.innerHTML = "Last transferred " + dataSize + "KB";
         totalDataTransfered.innerHTML = "Total transferred " + totalDataSize.toFixed(2) + "MB";
+        totalDataTransfered.style.backgroundColor="white";
     }
 
     function connect() {
@@ -9746,7 +9783,6 @@ void parseHttpPage()
             }
             canvas.onwheel = function(e){
                 e.preventDefault();
-                console.log(e.x , e.y , e.deltaX , e.deltaY , e.offsetX , e.offsetY );
                 mouseScrolled+= e.deltaY;
                 if(mouseScrolled > 50){
                     mouseScrolled = 0;
@@ -9807,9 +9843,14 @@ void parseHttpPage()
                             header[i] = resp[i];
                             i++;
                         }
-                        let pixelData = resp.slice(i + 1);
-                        var uncompressedSize = LZ4.decodeBlock(pixelData, serverPixelData)
-                        drawCanvas(header);
+                        
+                        if(resp[0] == 85){
+                            let pixelData = resp.slice(i + 1);
+                            var uncompressedSize = LZ4.decodeBlock(pixelData, serverPixelData)                            
+                            drawCanvas(header);
+                        } else if(resp[0] == 86) {
+                            updateCanvas(header, resp.slice(i + 1));
+                        }
                     });
                 }
                 else {
@@ -9850,7 +9891,7 @@ void parseHttpPage()
         var relative_width = canvas.width * canvas.height / screenContainer.offsetWidth;
         if (relative_width > screenContainer.offsetWidth) canvas.style.width = (screenContainer.offsetWidth) + "px";
         else canvas.style.height = (screenContainer.offsetHeight) + "px";
-        ctx.scale(config.width, config.height);
+        //ctx.scale(config.width, config.height);
         ctx.fillStyle = "rgb(255,255,255)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }

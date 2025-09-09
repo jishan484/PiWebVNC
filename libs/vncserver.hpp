@@ -26,9 +26,11 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/Xdamage.h>
 #include <X11/extensions/XTest.h>
+#include <jpeglib.h>
 
 #include "display.hpp"
 #include "input.hpp"
+#include "xOptimizer.hpp"
 
 class VNCServer
 {
@@ -42,6 +44,7 @@ class VNCServer
         void send_first_frame(int sd); // send the first frame to the client
     private:
         void threadSleep();
+        unsigned char *compress_image_to_jpeg(char *input_image_data, int width, int height, int *out_size, int quality);
         Display * display;
         Damage damage;
         ScreenInfo screenInfo;
@@ -95,6 +98,7 @@ void VNCServer::start_service(Websocket &ws)
 {
     register XImage *image;
     const XserverRegion xregion = XFixesCreateRegion(this->display, NULL, 0);
+    bool doCompress = 0;
     while(this->isRunning)
     {
         threadSleep();
@@ -122,18 +126,50 @@ void VNCServer::start_service(Websocket &ws)
                 int partCounts = 0;
                 XDamageSubtract(this->display, this->damage, None, xregion);
                 XRectangle *rect = XFixesFetchRegion(this->display, xregion, &partCounts);
+                //check if same frame is getting changed
                 for (int i = 0; i < partCounts; i++)
                 {
                     image = XGetImage(display, this->screenInfo.root, rect[i].x, rect[i].y, rect[i].width, rect[i].height, AllPlanes, ZPixmap);
                     int frameSize = (rect[i].height * image->bytes_per_line);
-                    int compressedSize = LZ4_compress_default(image->data, this->buffer, frameSize, this->bufferSize);
-                    std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " 
-                        + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " 
-                        + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
-                    char *info = (char *)data.c_str();
-                    int infoSize = strlen(info);
-                    if(!XDestroyImage(image)) free(image);
-                    ws.sendFrame(info, this->buffer, infoSize, compressedSize);
+                    int optimization = optimizationManager.checkOptimization(rect[i]);
+                    if(optimization < 100)
+                        {
+                            // send JPEG compressed frame
+                            int compressedSize = 0;
+                            int cord = 0, cordb = 0;
+                            for (int y = 0; y < image->height; y++)
+                            {
+                                for (int x = 0; x < image->width; x++)
+                                {
+                                    unsigned long pixel = XGetPixel(image, x, y);
+                                    unsigned char r = (pixel) >> 16;
+                                    unsigned char g = (pixel) >> 8;
+                                    unsigned char b = pixel;
+
+                                    this->buffer[cordb++] = r; // R
+                                    this->buffer[cordb++] = g; // G
+                                    this->buffer[cordb++] = b; // B
+                                }
+                            }
+                            char *jpeg_data = (char *)this->compress_image_to_jpeg(this->buffer, rect[i].width, rect[i].height, &compressedSize, optimization);
+                            std::string data = "VPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
+                            char *info = (char *)data.c_str();
+                            int infoSize = strlen(info);
+                            if (!XDestroyImage(image))
+                                free(image);
+                            ws.sendFrame(info, jpeg_data, infoSize, compressedSize);
+                            delete jpeg_data;
+                        }
+                    else
+                    {
+                        int compressedSize = LZ4_compress_default(image->data, this->buffer, frameSize, this->bufferSize);
+                        std::string data = "UPD" + std::to_string(rect[i].x) + " " + std::to_string(rect[i].y) + " " + std::to_string(rect[i].width) + " " + std::to_string(rect[i].height) + " " + std::to_string(image->bytes_per_line) + " " + std::to_string(compressedSize) + " \n";
+                        char *info = (char *)data.c_str();
+                        int infoSize = strlen(info);
+                        if (!XDestroyImage(image))
+                            free(image);
+                        ws.sendFrame(info, this->buffer, infoSize, compressedSize);
+                    }
                 }
                 XFree(rect);
             }
@@ -156,5 +192,55 @@ void VNCServer::threadSleep()
         usleep(this->sleepDelay);
     }
 }
+
+unsigned char *VNCServer::compress_image_to_jpeg(char *input_image_data, int width, int height, int *out_size, int quality)
+{
+    struct jpeg_compress_struct cinfo;
+    struct jpeg_error_mgr jerr;
+
+    // Create a memory destination for the compressed image
+    unsigned char *jpeg_data = NULL;
+    unsigned long jpeg_size = 0;
+
+    // Set up the error handler
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_compress(&cinfo);
+
+    // Memory buffer to hold the compressed data
+    jpeg_mem_dest(&cinfo, &jpeg_data, &jpeg_size);
+
+    // Set the compression parameters
+    cinfo.image_width = width;      // Image width
+    cinfo.image_height = height;    // Image height
+    cinfo.input_components = 3;     // RGB, so 3 components
+    cinfo.in_color_space = JCS_RGB; // Color space is RGB
+
+    jpeg_set_defaults(&cinfo);
+    jpeg_set_quality(&cinfo, quality, TRUE); // Set the quality (0-100)
+
+    // Start compression
+    jpeg_start_compress(&cinfo, TRUE);
+
+    // Write the image data
+    while (cinfo.next_scanline < cinfo.image_height)
+    {
+        unsigned char *row_pointer = (unsigned char *)&input_image_data[cinfo.next_scanline * width * 3];
+        jpeg_write_scanlines(&cinfo, &row_pointer, 1);
+    }
+
+    // Finish the compression
+    jpeg_finish_compress(&cinfo);
+
+    // Set the output size
+    *out_size = jpeg_size;
+
+    // Clean up
+    jpeg_destroy_compress(&cinfo);
+
+    // Return the compressed image data (JPEG in memory)
+    return jpeg_data;
+}
+
+
 
 #endif

@@ -57,6 +57,10 @@ void handle_sigint(int sig)
     vncServer.stop_service();
     exit(0);
 }
+void conLoop()
+{
+    wss->connections();
+}
 
 int main(int argc, char *argv[])
 {
@@ -71,7 +75,8 @@ int main(int argc, char *argv[])
     wss = &ws;
     xinputs = &input;
     signal(SIGINT, handle_sigint);
-    std::thread t1 = ws.begin(SERVER_PORT);
+    ws.begin(SERVER_PORT);
+    std::thread t1(conLoop);
     std::thread t2(frameLoop);
     ws.onMessage(onMessageCLBK);
     ws.onConnect(firstFrame);
