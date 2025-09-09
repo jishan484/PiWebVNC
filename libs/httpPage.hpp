@@ -9692,7 +9692,7 @@ void parseHttpPage()
             return;
         }
         statusdiv.innerText = "connecting...";
-        let ws = new WebSocket("ws://" + location.host);
+        let ws = new WebSocket((location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host);
         webSocket = ws;
         ws.onerror = function (evt) {
             //console.log("WebSocket Error: ", e);
