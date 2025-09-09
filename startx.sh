@@ -157,26 +157,52 @@ EOF
     chmod +x a.out
 
     # Update packages
-    sudo apt update
+    sudo apt update > /dev/null
 
     # Install minimal LXDE components + tools
-    sudo apt install --no-install-recommends \
+    sudo apt install --no-install-recommends -y \
       libxfont2 x11-xkb-utils menu \
       lxsession openbox lxpanel lxappearance \
       pcmanfm lxterminal xinit x11-xserver-utils \
       mate-polkit lxde-core libfm-modules \
-      menu-xdg adwaita-icon-theme # lxpanel-data
+      menu-xdg adwaita-icon-theme lxpanel-data > /dev/null
 
     # --- Call function to ensure panel config exists ---
     create_default_panel
+    sleep 1
     touch "$STATE_FILE"
     #==============================================================
     # --- Ensure xrandr command in ~/config/lxsession/LXDE/autostart ---
+   echo -n "Dependencies Installed, Setup will start after 5s. "
+    sleep 1
+    echo -n "4s.. "
+    sleep 1
+    echo -n "3s... "
+    sleep 1
+    echo -n "2s.... "
+    sleep 1
+    echo -n "1s..... "
+    sleep 1
+    echo "Go!"
     AUTOSTART="$HOME/.config/lxsession/LXDE/autostart"
     mkdir -p "$(dirname "$AUTOSTART")"
 
     LINE="@xrandr --fb $RESOLUTION"
-    grep -Fxq "$LINE" "$AUTOSTART" || echo "$LINE" >> "$AUTOSTART"
+
+    # If file doesn't exist, create it with the line
+    if [ ! -f "$AUTOSTART" ]; then
+        cp /etc/xdg/lxsession/LXDE/autostart ~/.config/lxsession/LXDE/autostart 2>/dev/null || true
+        echo "$LINE" >> "$AUTOSTART"
+    else
+        # If line already exists (any @xrandr), replace it
+        if grep -q "^@xrandr --fb" "$AUTOSTART"; then
+            sed -i "s|^@xrandr --fb.*|$LINE|" "$AUTOSTART"
+        else
+            # Otherwise append at the end
+            echo "$LINE" >> "$AUTOSTART"
+        fi
+    fi
+
     #==============================================================
 
     LINE='export DISPLAY=:0'
@@ -184,7 +210,7 @@ EOF
     grep -Fxq "$LINE" "$BASHRC" || echo "$LINE" >> "$BASHRC"
 
     # --- Force X server to use desired resolution ---
-    sudo sh -c "echo 'exec Xorg :0 -screen 0 ${RESOLUTION}x${DEPTH}' > /etc/X11/xinit/xserverrc"
+    sudo sh -c "echo 'exec ~/a.out :0 -screen 0 ${RESOLUTION}x${DEPTH}' > /etc/X11/xinit/xserverrc"
 
     # --- Start X + your binary ---
     startx -- ~/a.out :0 -screen 0 ${RESOLUTION}x${DEPTH} &
@@ -193,7 +219,7 @@ EOF
     export DISPLAY=:0
 
     # --- Set wallpaper ---
-    pcmanfm --set-wallpaper=\"wallpaper.jpg\" --wallpaper-mode=fit
+    pcmanfm --set-wallpaper="wallpaper.jpg" --wallpaper-mode=fit
 
     wait $PID
 else
@@ -204,7 +230,7 @@ else
     export DISPLAY=:0
 
     # --- Set wallpaper ---
-    pcmanfm --set-wallpaper=\"wallpaper.jpg\" --wallpaper-mode=fit
+    pcmanfm --set-wallpaper="wallpaper.jpg" --wallpaper-mode=fit
 
     wait $PID
 fi
