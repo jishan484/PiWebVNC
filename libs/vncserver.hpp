@@ -35,11 +35,11 @@ class VNCServer
     public:
         XDisplay xdisplay;
         XInputs *inputs;
-        VNCServer();
         ~VNCServer();
         void start_service(Websocket &ws);
         void stop_service();
         void send_first_frame(int sd); // send the first frame to the client
+        void start(int argc, char **argv);
     private:
         void threadSleep();
         Display * display;
@@ -55,9 +55,10 @@ class VNCServer
         char *buffer;
 };
 
-VNCServer::VNCServer()
-{
-    int damage_event, damage_error;   
+void VNCServer::start(int argc, char **argv) {
+    int damage_event, damage_error;
+    this->xdisplay.setArg(argc, argv);
+    this->xdisplay.start();
     this->display = this->xdisplay.getDisplay();
     this->screenInfo = this->xdisplay.getScreenInfo();
     strcpy(this->config,this->xdisplay.getDisplayConfig().c_str());

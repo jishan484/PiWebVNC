@@ -29,6 +29,10 @@
 #include <string>
 #include "websocket.hpp"
 
+
+// forward declare dix_main from libXvfb.a
+extern "C" int dix_main(int argc, char *argv[], char *envp[]);
+
 struct ScreenInfo
 {
     int width;
@@ -39,7 +43,6 @@ struct ScreenInfo
 class XDisplay
 {
 public:
-    XDisplay();
     ~XDisplay();
     void close();
     Display *getDisplay();
@@ -47,14 +50,21 @@ public:
     ScreenInfo getScreenInfo();
     std::string getCursorName();
     int getBitPerLine();
-
+    void start();
+    void setArg(int argc, char **argv) {
+        this->argc = argc;
+        this->argv = argv;
+    }
 private:
+    void startXvfb();
     Display *display = 0;
     int bitPerLine = 0;
+    std::thread xvfbThread;
+    int argc =0;
+    char **argv;
 };
 
-XDisplay::XDisplay()
-{
+void XDisplay::start() {
     // get result of command "echo $DISPLAY"
     try
     {
@@ -78,14 +88,56 @@ XDisplay::XDisplay()
     if (this->display == 0)
     {
         #if ERROR || DEBUG
-            std::cout << "[ERROR][EXIT APP] Could not open display. Please pass --display [id].\n\t eg: --display 18." << std::endl;
+            std::cout << "[ERROR][EXIT APP] Could not open display. The built-in X-server will be used !" << std::endl;
         #endif
-        exit(1);
+        startXvfb();
+
+        // retry until Xvfb is ready
+        for (int i = 0; i < 50 && this->display == nullptr; i++)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            this->display = XOpenDisplay(":0"); // assume :0
+        }
+
+        if (this->display == nullptr)
+        {
+            std::cerr << "[ERROR] Could not start built-in X-server, exiting app." << std::endl;
+            exit(1);
+        }
     }
     #if ERROR || DEBUG
         std::cout << "[LOG] Display opened successfully." << std::endl;
     #endif
 }
+
+void XDisplay::startXvfb()
+{
+    int main_argc = this->argc;
+    char **orig_argv = this->argv;
+
+    xvfbThread = std::thread([main_argc, orig_argv]() {
+        // Copy argv safely
+        char **main_argv = new char*[main_argc + 1];
+        for (int i = 0; i < main_argc; i++) {
+            main_argv[i] = new char[strlen(orig_argv[i]) + 1];
+            strcpy(main_argv[i], orig_argv[i]);
+        }
+        main_argv[main_argc] = nullptr;
+
+        extern char **environ;
+        dix_main(main_argc, main_argv, environ); // blocks until server exit
+
+        // Cleanup after dix_main returns
+        for (int i = 0; i < main_argc; i++) {
+            delete[] main_argv[i];
+        }
+        delete[] main_argv;
+    });
+
+    xvfbThread.detach();
+}
+
+
 XDisplay::~XDisplay()
 {
     // free display

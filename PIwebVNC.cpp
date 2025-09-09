@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     std::cout << "\n[HINT] Open http://localhost:" << SERVER_PORT << " in your browser" << std::endl;
     std::cout << "[HINT] ---OR---" << std::endl;
     std::cout << "[HINT] Open http://Ip-of-PI:" << SERVER_PORT << " from different PC\n"<< std::endl;
-
+    vncServer.start(argc, argv);
     Display *display = vncServer.xdisplay.getDisplay();
     Websocket ws;
     XInputs input(display);
